@@ -25,3 +25,12 @@ CREATE TRIGGER `insert_groups_trigger` AFTER INSERT ON `belong`
 //
 DELIMITER ;
 
+
+DROP TRIGGER IF EXISTS `delete_groups_trigger`;
+DELIMITER //
+CREATE TRIGGER `delete_groups_trigger` AFTER DELETE ON `belong`
+  FOR EACH ROW 
+    UPDATE `groups` SET `groups`.num=`groups`.num-1 where `groups`.id=NEW.`gid`;
+//
+DELIMITER ;
+
