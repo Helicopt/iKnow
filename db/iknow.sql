@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   `topicid` int(11) NOT NULL,
   `author` int(11) NOT NULL,
   `createTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `actTime` timestamp DATETIME NOT NULL,
+  `actTime` DATETIME NOT NULL,
   `status` int(11) NOT NULL,
   `infoid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
