@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   `topicid` int(11) NOT NULL,
   `author` int(11) NOT NULL,
   `createTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `actTime` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `actTime` timestamp DATETIME NOT NULL,
   `status` int(11) NOT NULL,
   `infoid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS `topic` (
   `title` varchar(64) NOT NULL,
   `author` int(11) NOT NULL,
   `createTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `actTime` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `actTime` DATETIME NOT NULL,
   `status` int(11) NOT NULL,
   `infoid` int(11) NOT NULL,
   `imgid` int(11) DEFAULT NULL,
@@ -449,3 +449,18 @@ ALTER TABLE `topic_notify`
 --
 ALTER TABLE `user`
   ADD CONSTRAINT `user_ibfk_1` FOREIGN KEY (`avatarid`) REFERENCES `avatar` (`id`);
+
+DROP TRIGGER IF EXISTS `update_answer_trigger`;
+DELIMITER //
+CREATE TRIGGER `update_answer_trigger` BEFORE UPDATE ON `answer`
+ FOR EACH ROW SET NEW.`actTime` = NOW()
+//
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `update_topic_trigger`;
+DELIMITER //
+CREATE TRIGGER `update_topic_trigger` BEFORE UPDATE ON `topic`
+ FOR EACH ROW SET NEW.`actTime` = NOW()
+//
+DELIMITER ;
+
