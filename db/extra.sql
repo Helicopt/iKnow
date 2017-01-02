@@ -14,4 +14,4 @@
 CREATE DATABASE IF NOT EXISTS `iknow` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `iknow`;
 
-ALTER TABLE `user` DROP INDEX mail (`email`)
+ALTER TABLE `user` DROP INDEX mail
