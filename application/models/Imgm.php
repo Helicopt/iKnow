@@ -4,7 +4,7 @@
  *
  * @author     helicopter <fwtt20071028@126.com>
  * @version    1.0
- * @package    Idea
+ * @package    iKnow
  * @subpackage Model
  */
 
@@ -14,7 +14,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Model: ImgM
  *
- * @package    Idea
+ * @package    iKnow
  * @subpackage Model
  */
 
@@ -24,11 +24,7 @@ class ImgM extends CI_Model {
 	* @var    string
 	*/
 	var $imgTableName = "img";
-	/**
-	* @access private
-	* @var    string
-	*/
-	var $topicTableName = "topic";
+
 	/**
 	*
 	* ImgM构造函数
@@ -36,60 +32,57 @@ class ImgM extends CI_Model {
 	*/
 	function __constuct()
 	{
-		$this->load->model('topicm');
 		parent::__constuct();
 	}	
 
-	function addImg($id,$ext)
+	function addImg($uid,$ext)
 	{
 		$data=array();
-		$data['tid']=$id;
+		date_default_timezone_set('PRC');
 		$tst=date('Y-m-d H:i:s');
-		$data['k']=md5(($id.$tst));
+		$data['hash']=md5(($uid.$tst));
 		$data['ext']=$ext;
-		$this->db->insert($this->imgTableName, $data);		
-		return $data['k'];
+		$this->sqlm->_insert($this->imgTableName, $data);		
+		return $data['hash'];
 	}
 
 
 	function check($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->sqlm->_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return FALSE;
-		$result=$query->row_array(0);
-		if ($result['status']==0) return TRUE;
-		return FALSE;
+		return TRUE;
 	}
 
-	function getImgByTID($id)
-	{
-		$query=$this->db->get_where($this->imgTableName,array('tid'=>$id,'status'=>1));
-		if ($query->num_rows()<=0) return null;
-		$result=$query->row_array(0);
-		return array("k"=>$result['k'],"ext"=>$result['ext']);
-	}
+	// function getImgByTID($id)
+	// {
+	// 	$query=$this->db->get_where($this->imgTableName,array('tid'=>$id,'status'=>1));
+	// 	if ($query->num_rows()<=0) return null;
+	// 	$result=$query->row_array(0);
+	// 	return array("k"=>$result['k'],"ext"=>$result['ext']);
+	// }
 
-	function exists($key)
-	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
-		if ($query->num_rows()<=0) return FALSE;
-		$result=$query->row_array(0);
-		if ($result['status']==1) return TRUE;
-		return FALSE;
-	}
+	// function exists($key)
+	// {
+	// 	$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+	// 	if ($query->num_rows()<=0) return FALSE;
+	// 	$result=$query->row_array(0);
+	// 	if ($result['status']==1) return TRUE;
+	// 	return FALSE;
+	// }
 
 	function getExt($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->sqlm->_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return "";
 		$result=$query->row_array(0);
 		return $result['ext'];
 	}
 
-	function sign($key)
-	{
-		$this->db->update($this->imgTableName,array('status'=>1),array('k'=>$key));	
-	}
+	// function sign($key)
+	// {
+	// 	$this->db->update($this->imgTableName,array('status'=>1),array('k'=>$key));	
+	// }
 	
 
 }

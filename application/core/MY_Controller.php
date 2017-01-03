@@ -12,7 +12,7 @@ class MY_Controller extends CI_Controller
     {
         parent::__construct();
 
-$enum_array = Array(
+$enum_array = array(
 'EMAIL_VERIFIED_USER' => 1 << 1, //已经通过Email验证的注册用户（用户数据表里面status项）
 'INSPECT_USER' => 1 << 2, //有审核举报权限的用户
 'SUPER_ADMIN' => 1 << 5, //拥有全局权限的用户
@@ -27,17 +27,18 @@ $enum_array = Array(
 enum($enum_array);
 unset($enum_array);
 
+		session_start();
+
 		if ($this->userm->isLogin()) {
 			$this->user_info = $this->userm->get_current_user_info();
 			$this->auth = $this->user_info['id'];
 		}
 		else $this->auth = 0;
 
-		session_start();
 		if (!$this->userm->isLogin() &&
+				($this->uri->segment(1) != 'explore') &&
 				($this->uri->segment(1) != 'register') &&
 				(current_url() != base_url().index_page()) &&
-				($this->uri->segment(1) != 'login') &&
 				($this->uri->segment(1) != 'help') &&
 				($this->uri->segment(1) != 'error')
 				){
@@ -46,3 +47,5 @@ unset($enum_array);
     }
 
 }
+
+?>

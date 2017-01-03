@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Filename: Img.php
+ * Filename: Image.php
  *
  * @author     helicopter <fwtt20071028@126.com>
  * @version    1.0
- * @package    Idea
+ * @package    Iknow
  * @subpackage Controller
  */
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Img extends CI_Controller {
+class Image extends MY_Controller {
 
 	var $PicPath = "./img/";
 
@@ -19,11 +19,11 @@ class Img extends CI_Controller {
 		parent::__construct();
 		$this->load->model('userm');
 		$this->load->model('imgm');
-		$this->load->model('topicm');
 	}
 
 	public function index()
 	{
+		date_default_timezone_set('PRC');
 		echo json_encode(array('version' => '1.0', 'author' => 'fwt', 'projectName' => 'ideaWorkshop'));
 		echo date('Y-m-d H:i:s');
 		echo "\n<br>ImgSystem<br>";
@@ -31,6 +31,10 @@ class Img extends CI_Controller {
 		$key=$this->security->xss_clean($key);
 		$key=urlencode($key);
 		$this->load->view("img",array("key"=>$key));
+	}
+
+	public function addImg($ext) {
+		echo $this->imgm->addImg($this->auth,$ext);
 	}
 
 	public function upload($k="0")
@@ -71,14 +75,14 @@ class Img extends CI_Controller {
 			echo $this -> image_lib -> display_errors();
 			return FALSE;
 		}		
-		$this->imgm->sign($k);
+		//$this->imgm->sign($k);
 		echo "OK";
 	}
 
 	public function k($k="0")
 	{
 		$k=$this->security->xss_clean($k);
-		if (!$this->imgm->exists($k)) return FALSE;
+		if (!$this->imgm->check($k)) return FALSE;
 		$ext=$this->imgm->getExt($k);
 		$url=$this->PicPath.$k.".".$ext;
 		header("Content-type:image/".$ext);
@@ -109,5 +113,5 @@ class Img extends CI_Controller {
 		}
 	}
 }
-/* End of file Img.php */
-/* Location: ./application/controllers/Img.php */
+/* End of file Image.php */
+/* Location: ./application/controllers/Image.php */

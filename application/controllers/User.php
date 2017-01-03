@@ -16,7 +16,7 @@ class User extends MY_Controller {
 	function __construct() {
 		parent::__construct();
 		$acc=urldecode($this->security->xss_clean(file_get_contents("php://input")));
-		$data=json_decode($acc, TRUE);			
+		$data=json_decode($acc, TRUE);	
 		if ($this->auth) $this->data=$data;
 		else {
 			echo json_encode(array("status"=>0));
@@ -25,7 +25,11 @@ class User extends MY_Controller {
 	}
 
 	public function index() {
-		$this->load->view('user/main');
+		$this->load->view('user/main',array(
+			'cata'=>'profile',
+			'uid'=>$this->auth,
+			'info'=>$this->userm->getDetails($this->auth)
+			));
 	}
 	
 	public function register() {
@@ -108,6 +112,70 @@ class User extends MY_Controller {
 	// 		echo json_encode(array("status"=>2));					
 	// 	}
 	// }
+
+	public function ajax_getColleges() {
+		$this->load->model('edum');
+		echo json_encode($this->edum->getAllCollege());
+	}
+		
+	public function ajax_getMajors() {
+		$this->load->model('edum');
+		echo json_encode($this->edum->getAllmajor());
+	}
+
+	public function ajax_getEduById() {
+		$this->load->model('edum');
+		if (isset($this->data['uid'])) $uid=$this->data['uid'];
+		else $uid=$this->auth;
+		echo json_encode($this->edum->getEduById($uid));		
+	}
+
+	public function ajax_editEdu() {
+		$d=$this->data;
+		$status=UNKNOWN_MSG;
+		$message="";
+		if (!isset($d['eid'])) {
+			$status=FAIL_MSG;
+			$message="fail";
+		}
+		if (!isset($d['cid'])) {
+			$d['cid']=0;
+		}
+		if (!isset($d['mid'])) {
+			$d['mid']=0;
+		}
+		$this->load->model('edum');
+		if ($d['mid']!=0||$d['cid']!=0) {
+			$status=$this->edum->editEduById($d['eid'],$d['cid'],$d['mid'],$this->auth)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==FAIL_MSG) $message="请检查院校或者专业是否有误";
+		} else $message="没有修改";
+		echo json_encode(array('status'=>$status,'message'=>$message));
+	}
+	
+	public function ajax_rmEdu() {
+		$d=$this->data;
+		$status=UNKNOWN_MSG;
+		$message="";
+		if (!isset($d['eid'])) {
+			$status=FAIL_MSG;
+			$message="fail";
+		}
+		$this->load->model('edum');
+		$status=$this->edum->delEduById($d['eid'],$this->auth)?SUCCESS_MSG:FAIL_MSG;
+		if ($status==FAIL_MSG) $message="删除失败";
+		echo json_encode(array('status'=>$status,'message'=>$message));
+	}
+		
+	public function ajax_addEdu() {
+		$d=$this->data;
+		$status=UNKNOWN_MSG;
+		$message="";
+		$this->load->model('edum');
+		$n_id=$this->edum->addEduById($this->auth);
+		$status=$n_id?SUCCESS_MSG:FAIL_MSG;
+		if ($status==FAIL_MSG) $message="失败";
+		echo json_encode(array('status'=>$status,'message'=>$message,'eid'=>$n_id));
+	}
 		
 	public function ajax_pwdSet() {
 		$status=UNKNOWN_MSG;

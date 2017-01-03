@@ -17,7 +17,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @subpackage Model
  */
 
-class UserM extends MY_Model {
+class UserM extends CI_Model {
 	/**
 	* @access private
 	* @var    string
@@ -41,7 +41,7 @@ class UserM extends MY_Model {
 	
 	function login($username, $pwd)
 	{
-		$query = $this->_where($this->userTableName,array('email'=>$username));
+		$query = $this->sqlm->_where($this->userTableName,array('email'=>$username));
 		if ($query->num_rows() > 0)
 		{
 			$result=$query->row_array(0);
@@ -62,16 +62,16 @@ class UserM extends MY_Model {
 
 	function emailExists($mail)
 	{
-		$query = $this->_where($this->userTableName,array('email'=>$username));
+		$query = $this->sqlm->_where($this->userTableName,array('email'=>$mail));
 		return ($query->num_rows() > 0)?($query->row_array(0)['id']):0;
 	}
 
 	function resetP($uid, $NewPwd)
 	{
-		$query = $this->_where($this->userTableName,array('id'=>$uid));
+		$query = $this->sqlm->_where($this->userTableName,array('id'=>$uid));
 		if ($query->num_rows() > 0) 
 		{
-			$this-> db->_update($this->userTableName,array('pwd'=>$NewPwd),array('id'=>$uid));		
+			$this->sqlm->_update($this->userTableName,array('pwd'=>$NewPwd),array('id'=>$uid));		
 			return TRUE;
 		} 
 		else 
@@ -86,8 +86,8 @@ class UserM extends MY_Model {
 		$data['email']=$info['email'];
 		$data['pwd']=$info['pwd'];
 		if (isset($info['nick'])) $data['nick']=$info['nick']; else $data['nick']="";
-		if (isset($info['sig'])) $data['sig']=$info['sig']; else $data['sig']="";
-		$this->_insert($this->userTableName, $data);
+		if (isset($info['sig'])) $data['sig']=$info['sig']; else $data['sig']=" ";
+		$this->sqlm->_insert($this->userTableName, $data);
 		return $this->db->insert_id(); //mysql_insert_id()
 	}
 
@@ -112,7 +112,7 @@ class UserM extends MY_Model {
 	function getDetails($id)
 	{
 		$returnArray = array();
-			$query=$this->_where($this->userTableName,array('id'=>$id));
+			$query=$this->sqlm->_where($this->userTableName,array('id'=>$id));
 			if ($query->num_rows()<=0) return FALSE;
 			$result=$query->row_array();
 			$returnArray['nick'] = $result['nick'];
@@ -126,21 +126,21 @@ class UserM extends MY_Model {
 		
 	function setProfile($id,$info)
 	{
-		$query=$this->_where($this->userTableName,array('id'=>$id));
+		$query=$this->sqlm->_where($this->userTableName,array('id'=>$id));
 		if ($query->num_rows()<=0){
 			return FALSE;
 		}
 		$data=array();
 		if (isset($info['nick'])) $data['nick']=$info['nick'];
 		if (isset($info['sig'])) $data['sig']=$info['sig'];
-		$this->_update($this->userTableName,$data,array('id'=>$id));
+		$this->sqlm->_update($this->userTableName,$data,array('id'=>$id));
 		return TRUE;
 	}
 	
 	function userExists($uid) {
 		if (!is_numeric($uid))return false;
 		$uid=IntVal($uid);
-		$query=$this->_where($this->userTableName,array('id'=>$uid));
+		$query=$this->sqlm->_where($this->userTableName,array('id'=>$uid));
 		return ($query->num_rows()>0);
 	}	
 	

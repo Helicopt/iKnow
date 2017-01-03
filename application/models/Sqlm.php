@@ -1,16 +1,40 @@
-<?php 
+<?php
+/**
+ * Filename: sqlm.php
+ *
+ * @author     helicopter <fwtt20071028@126.com>
+ * @version    1.0
+ * @package    Iknow
+ * @subpackage Model
+ */
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class MY_MODEL extends CI_MODEL
-{
+/**
+ * Model: SqlM
+ *
+ * @package    Iknow
+ * @subpackage Model
+ */
 
+class SqlM extends CI_Model {
+
+	/**
+	*
+	* SqlM构造函数
+	*
+	*/
+	function __constuct()
+	{
+		parent::__constuct();
+	}
+	
 	function _where($tb, $d) {
 		$sqls="select * from `$tb` where true ";
 		foreach ($d as $key => $value) {
 			$sqls.="and `$tb`.`$key`='$value' ";
 		}
-		return $this->db->sql($sqls);
+		return $this->db->query($sqls);
 	}
 
 	function _update($tb, $d1, $d2) {
@@ -23,7 +47,7 @@ class MY_MODEL extends CI_MODEL
 		foreach ($d2 as $key => $value) {
 			$sqls.="and `$key`='$value' ";
 		}
-		return $this->db->sql($sqls);
+		return $this->db->query($sqls);
 	}
 
 	function _insert($tb, $d) {
@@ -40,7 +64,7 @@ class MY_MODEL extends CI_MODEL
 			$keys.="`$key`";
 			if ($value!=NULL) $values.="'$value'"; else $values.="NULL";
 		}
-		return $this->db->sql($sqls."($keys) values($values)");
+		return $this->db->query($sqls."($keys) values($values)");
 	}
 
 	function _delete($tb, $d) {
@@ -48,7 +72,10 @@ class MY_MODEL extends CI_MODEL
 		foreach ($d as $key => $value) {
 			$sqls.="and `$tb`.`$key`='$value' ";
 		}
-		return $this->db->sql($sqls);
+		return $this->db->query($sqls);
 	}
 
 }
+
+/* End of file sqlm.php */
+/* Location: ./application/models/sqlm.php */

@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Welcome extends MY_Controller {
+class Explore extends MY_Controller {
 
 	/**
 	 * Index Page for this controller.
@@ -19,11 +19,10 @@ class Welcome extends MY_Controller {
 	 * @see http://codeigniter.com/user_guide/general/urls.html
 	 */
 	public function index() {
-		$flag=false;
-		if (isset($_GET['action'])&&$_GET['action']=='register') $flag=true;
-		if (!$this->auth) $this->load->view('user/register',array('cata'=>'reg','uid'=>0,'reg'=>$flag));
-		else $this->load->view('main',
-			array('cata'=>'home',
+		if (!$this->auth) $this->load->view('explore',
+			array('cata'=>'explore','uid'=>0));
+		else $this->load->view('explore',
+			array('cata'=>'explore',
 				'uid'=>$this->auth,
 				'info'=>array('nick'=>$this->user_info['nick'])
 				)
