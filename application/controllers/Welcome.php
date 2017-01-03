@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Welcome extends CI_Controller {
+class Welcome extends MY_Controller {
 
 	/**
 	 * Index Page for this controller.
@@ -18,10 +18,9 @@ class Welcome extends CI_Controller {
 	 * map to /index.php/welcome/<method_name>
 	 * @see http://codeigniter.com/user_guide/general/urls.html
 	 */
-	public function index()
-	{
-		echo json_encode(array('version' => '1.0', 'author' => 'fwt', 'projectName' => 'ideaWorkshop'));
-		echo date('Y-m-d H:i:s');
-		echo ("5"==5?"1":"0");
+	public function index() {
+		if ($this->auth) {
+			echo $this->user_info['nick'];
+		} else echo "login";
 	}
 }

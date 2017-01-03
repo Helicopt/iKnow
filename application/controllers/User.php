@@ -4,135 +4,162 @@
  *
  * @author     helicopter <fwtt20071028@126.com>
  * @version    1.0
- * @package    Idea
+ * @package    Iknow
  * @subpackage Controller
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class User extends CI_Controller {
+class User extends MY_Controller {
 
 	var $data = array();
-	var $auth = 0;
-	var $AccessType = 0;
 
 	function __construct() {
 		parent::__construct();
-		$this->load->model('userm');
-		$this->load->model('avatarm');
 		$acc=urldecode($this->security->xss_clean(file_get_contents("php://input")));
-		$len=strlen($acc);
-		$needCheck=!($this->uri->segment(1)=='user'&&($this->uri->segment(2)=='register'));
-		if ($len>0&&$acc[$len-1]=='=')
-		{
-			$acc=substr($acc,0,strlen($acc)-1);
-			$data=json_decode($acc, TRUE);			
-			$this->AccessType=0;
-		}
-		else 
-		{
-			$data=json_decode($acc, TRUE);			
-			$data=$data[0];
-			$this->AccessType=1;
-		}
-		if ($needCheck)
-		{
-			if (isset($data['uem'])&&isset($data['upw']))
-			{
-				if ($this->AccessType==1) $this->auth=$this->userm->islogin();
-				if ($this->AccessType==0) $this->auth=$this->userm->login($data['uem'],$data['upw']);
-				//if ($this->AccessType==1) $this->auth=$this->userm->login('admin@a.bc','40bd001563085fc35165329ea1ff5c5ecbdbbeef');
-			}
-		}
-		else $this->auth=-1;
+		$data=json_decode($acc, TRUE);			
 		if ($this->auth) $this->data=$data;
-		else echo json_encode(array("status"=>0));
+		else {
+			echo json_encode(array("status"=>0));
+			exit();
+		}
 	}
 
 	public function index() {
-		if (!$this->auth) return;
-		echo json_encode(array("status"=>1,"id"=>$this->auth));		
+		$this->load->view('user/main');
 	}
 	
 	public function register() {
 		$d=$this->data;
-		$status=-1;
+		$status=UNKNOWN_MSG;
 		$message="";
 		if (!isset($d['email'])||!isset($d['pwd'])) 
 		{
-			$status=2;  
+			$status=FAIL_MSG;  
 			$message="邮箱和密码不能为空";
 		}
 		else 
 		if (!filter_var($d['email'],FILTER_VALIDATE_EMAIL))
 		{
-			$status=2;  
+			$status=FAIL_MSG;  
 			$message="邮箱不合法";			
 		}
 		else 
 		if ($this->userm->emailExists($d['email']))
 		{
-			$status=2;  
+			$status=FAIL_MSG;  
 			$message="邮箱已存在";			
 		}
 		else 
-		if (strlen($d['pwd'])!=40||!preg_match("/^[A-Za-z0-9]*$/", $d['pwd']))
+		if (strlen($d['pwd'])!=64||!preg_match("/^[A-Za-z0-9]*$/", $d['pwd']))
 		{
-			$status=2;  
+			$status=FAIL_MSG;  
 			$message="密码不合法";			
 		}
-		if ($status<0)
+		if ($status==UNKNOWN_MSG)
 		{
-			$status=$this->userm->register($d);
-			if ($status==1) $message="注册成功";
-			else $message="注册失败";
+			$id=$this->userm->register($d);
+			if ($id) {
+				$message="注册成功";
+				$status=SUCCESS_MSG;
+			}
+			else {
+				$message="注册失败";
+				$status=FAIL_MSG;
+			}
 		}
 		echo json_encode(array("status"=>$status,"message"=>$message));		
 	}
 
-	public function profile() {
-		if (!$this->auth) return;		
-		$userDetails=$this->userm->getUserDetails($this->auth);
-		echo json_encode(array("status"=>1,"profile"=>$userDetails));		
+	public function ajax_profile() {
+		$userDetails=$this->userm->getAllInfo($this->auth);
+		echo json_encode(array("status"=>SUCCESS_MSG,"profile"=>$userDetails));		
 	}
 		
-	public function look() {
-		if (!$this->auth) return;		
+	public function ajax_look() {
 		$d=$this->data;
-		$status=1;
+		$status=UNKNOWN_MSG;
 		if (!isset($d['id'])) 
 		{
-			$status=2;
+			$status=FAIL_MSG;
 			$userDetails=array();
 		}
-		else $userDetails=$this->userm->getUserDetails($d['id']);
-		echo json_encode(array("status"=>$status,"profile"=>$userDetails));		
+		else {
+			$userDetails=$this->userm->getDetails($this->auth,$d['id']);
+			$status=SUCCESS_MSG;
+		}
+		echo json_encode(array("status"=>$status,"profile"=>$userDetails));
 	}
 
-	public function setProfile() {
-		if (!$this->auth) return;		
-		$status=$this->userm->setProfile($this->auth,$this->data)?1:2;	
-		echo json_encode(array("status"=>$status));		
+	public function ajax_setProfile() {
+		$status=$this->userm->setProfile($this->auth,$this->data)?SUCCESS_MSG:FAIL_MSG;
+		echo json_encode(array("status"=>$status));
 	}
 		
-	public function setAvatar() {
-		if (!$this->auth) return;		
-		$d=$this->data;
-		if (isset($d['pic']))
-		{
-			$ImgId=$this->avatarm->addImg($this->auth,$d['pic']);
-			echo json_encode(array("status"=>1,"k"=>$ImgId));		
-		}
-		else 
-		{
-			echo json_encode(array("status"=>2));					
-		}
-	}
+	// public function setAvatar() {
+	// 	if (!$this->auth) return;		
+	// 	$d=$this->data;
+	// 	if (isset($d['pic']))
+	// 	{
+	// 		$ImgId=$this->avatarm->addImg($this->auth,$d['pic']);
+	// 		echo json_encode(array("status"=>1,"k"=>$ImgId));		
+	// 	}
+	// 	else 
+	// 	{
+	// 		echo json_encode(array("status"=>2));					
+	// 	}
+	// }
 		
-	public function pwdSet() {
-		if (!$this->auth) return;		
+	public function ajax_pwdSet() {
+		$status=UNKNOWN_MSG;
+		$message="";
 		$d=$this->data;
-		$status=$this->userm->resetP($this->auth,$d['np']);
-		echo json_encode(array("status"=>$status));		
+		if (!isset($d['op'])||!isset($d['np'])) {
+			$status=FAIL_MSG;
+			$message="fail";
+			return;
+		}
+		if (strlen($d['np'])!=64||!preg_match("/^[A-Za-z0-9]*$/", $d['np'])) {
+			$status=FAIL_MSG;
+			$message="密码不合法";
+		}
+		if (strlen($d['op'])!=64||!preg_match("/^[A-Za-z0-9]*$/", $d['op'])) {
+			$status=FAIL_MSG;
+			$message="密码不合法";
+		}
+		if ($status==UNKNOWN_MSG) {
+			if (!$this->userm->validatePWD($this->auth,$d['op'])) {
+				$status=FAIL_MSG;
+				$message="旧密码错误";
+			}
+			if ($status==UNKNOWN_MSG) $status=$this->userm->resetP($this->auth,$d['np'])?SUCCESS_MSG:FAIL_MSG;
+		}
+		echo json_encode(array("status"=>$status,"message"=>$message));
+	}
+
+	public function login() {
+		$d=$this->data;
+		$status=UNKNOWN_MSG;
+		$message="";
+		if (!isset($d['email'])||!isset($d['pwd'])) {
+			$status=FAIL_MSG;
+			$message="fail";
+			return;			
+		}
+		$status=$this->userm->login($d['email'],$d['pwd'])?SUCCESS_MSG:AUTH_MSG;
+		if ($status==AUTH_MSG) $message="邮箱或密码错误";
+		echo json_encode(array("status"=>$status,"message"=>$message));
+	}
+
+	public function profile() {
+		$this->load->view('user/profile');
+	}
+	
+	public function lookAt() {
+		$this->load->view('user/look');
+	}
+	
+	public function resetPWD() {
+		$this->load->view('user/resetPWD');
 	}
 	
 }
