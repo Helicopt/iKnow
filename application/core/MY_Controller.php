@@ -28,7 +28,7 @@ enum($enum_array);
 unset($enum_array);
 
 		if ($this->userm->isLogin()) {
-			$this->user_info = $this->userm->get_current_user_info()
+			$this->user_info = $this->userm->get_current_user_info();
 			$this->auth = $this->user_info['id'];
 		}
 		else $this->auth = 0;

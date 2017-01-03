@@ -15,18 +15,14 @@ class Register extends MY_Controller {
 
 	function __construct() {
 		parent::__construct();
-		$acc=urldecode($this->security->xss_clean(file_get_contents("php://input")));
+		$acc=urldecode($this-> security->xss_clean(file_get_contents("php://input")));
 		$data=json_decode($acc, TRUE);			
-		if ($this->auth) $this->data=$data;
-		else {
-			echo json_encode(array("status"=>0));
-			exit();
-		}
+		$this-> data=$data;
 	}
 
 	public function index() {
-		if (!$this->auth)
-			$this->load->view('user/register');
+		if (!$this-> auth)
+			$this-> load-> view('user/register');
 		else redirect(base_url());
 	}
 		

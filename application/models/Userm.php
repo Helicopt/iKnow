@@ -71,7 +71,7 @@ class UserM extends MY_Model {
 		$query = $this->_where($this->userTableName,array('id'=>$uid));
 		if ($query->num_rows() > 0) 
 		{
-			$this->db->_update($this->userTableName,array('pwd'=>$NewPwd),array('id'=>$uid));		
+			$this-> db->_update($this->userTableName,array('pwd'=>$NewPwd),array('id'=>$uid));		
 			return TRUE;
 		} 
 		else 
@@ -112,7 +112,7 @@ class UserM extends MY_Model {
 	function getDetails($id)
 	{
 		$returnArray = array();
-			$query=$this->db->get_where($this->userTableName,array('id'=>$id));
+			$query=$this->_where($this->userTableName,array('id'=>$id));
 			if ($query->num_rows()<=0) return FALSE;
 			$result=$query->row_array();
 			$returnArray['nick'] = $result['nick'];
@@ -126,7 +126,7 @@ class UserM extends MY_Model {
 		
 	function setProfile($id,$info)
 	{
-		$query=$this->db->get_where($this->userTableName,array('id'=>$id));
+		$query=$this->_where($this->userTableName,array('id'=>$id));
 		if ($query->num_rows()<=0){
 			return FALSE;
 		}
