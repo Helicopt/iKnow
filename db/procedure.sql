@@ -16,3 +16,16 @@ begin
 end $$
 
 delimiter ;
+
+
+DROP PROCEDURE IF EXISTS `get_title`;
+
+delimiter $$
+CREATE  PROCEDURE `get_title`(IN `tid` INT)
+begin
+	declare tt varchar(64);
+	select `title` into tt from `topic` where `topic`.`id`=tid;
+   select tt;
+end $$
+
+delimiter ;

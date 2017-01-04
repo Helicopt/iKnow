@@ -1,30 +1,30 @@
 <?php
 
 /**
- * Filename: Img.php
+ * Filename: Avatar.php
  *
  * @author     helicopter <fwtt20071028@126.com>
  * @version    1.0
- * @package    Idea
+ * @package    iKnow
  * @subpackage Controller
  */
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Avatar extends CI_Controller {
+class Avatar extends MY_Controller {
 
 	var $PicPath = "./avatar/";
+	var $defaultAVA = "./avatar/aaaaa.png";
 
 	function __construct() {
 		parent::__construct();
-		$this->load->model('userm');
 		$this->load->model('avatarm');
-		$this->load->model('topicm');
 	}
 
 	public function index()
 	{
 		echo json_encode(array('version' => '1.0', 'author' => 'fwt', 'projectName' => 'ideaWorkshop'));
+		date_default_timezone_set('PRC');
 		echo date('Y-m-d H:i:s');
 		echo "\n<br>AvatarSystem<br>";
 		$key=isset($_GET['key'])?$_GET['key']:"0";
@@ -33,24 +33,25 @@ class Avatar extends CI_Controller {
 		$this->load->view("avatar",array("key"=>$key));
 	}
 
-	public function upload($k="0")
+	public function upload()
 	{
-		$k=$this->security->xss_clean($k);
-		if (!$this->avatarm->check($k)) return FALSE;
+		$ext=pathinfo($_FILES['ava']['name'],PATHINFO_EXTENSION);
+		$k="";
+		$avid=$this->avatarm->addImg($this->auth,$ext,$k);
 		$config['upload_path'] = $this->PicPath;
 		$config['allowed_types'] = 'jpg|jpeg|gif|png';
-		$config['file_name'] = $k.".".$this->avatarm->getExt($k);
+		$config['file_name'] = $k.".".$ext;
 		$config['max_size'] = '1024';
-		$config['max_width']  = '400';
-		$config['max_height']  = '400';
+		$config['max_width']  = '800';
+		$config['max_height']  = '800';
 
 		$this -> load -> library('upload',$config);
 
-		$result = $this -> upload -> do_upload('img');
+		$result = $this -> upload -> do_upload('ava');
 
 		if(!$result)
 		{
-			echo $this -> upload -> display_errors();
+			echo json_encode(array("status"=>FAIL_MSG,"message"=>($this -> upload -> display_errors())));
 			return FALSE;
 		}
 
@@ -68,18 +69,28 @@ class Avatar extends CI_Controller {
 
 		if(!$this -> image_lib -> resize())
 		{
-			echo $this -> image_lib -> display_errors();
+			//echo $this -> image_lib -> display_errors();
+			echo json_encode(array("status"=>FAIL_MSG,"message"=>$this -> image_lib -> display_errors()));
 			return FALSE;
 		}
-		$tid=$this->avatarm->getTIDByKey($k);
-		$oldKey=$this->userm->getAvatar($tid);
-		$this->avatarm->sign($k,$oldKey);
-		$this->userm->setAvatar($tid,$k);
-		echo "OK";
+		if ($avid)
+		{
+			$this->userm->setAvatar($this->auth,$avid);
+			echo json_encode(array("status"=>SUCCESS_MSG));
+		} else {
+			echo json_encode(array("status"=>FAIL_MSG,"message"=>'fail'));
+		}
 	}
 
 	public function k($k="0")
 	{
+		if ($k=='0') {
+			$img=imagecreatefrompng($this->defaultAVA);
+			imagepng($img);
+			imagedestroy($img);				
+
+			return;
+		}
 		$k=$this->security->xss_clean($k);
 		if (!$this->avatarm->exists($k)) return FALSE;
 		$ext=$this->avatarm->getExt($k);
@@ -121,6 +132,9 @@ class Avatar extends CI_Controller {
 		else 
 		{
 			$k=$this->userm->getAvatar($k);
+			if ($k==null) $k="0";
+			$k=$this->avatarm->getImgByID($k);
+			if ($k==null) $k="0"; else $k=$k['k'];
 			$this->k($k);
 		}
 	}

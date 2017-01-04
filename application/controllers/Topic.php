@@ -86,10 +86,59 @@ class Topic extends MY_Controller {
 		{
 			$tid=$this->topicm->addQ($this->auth,$d);
 			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
-			if ($status==SUCCESS_MSG) $message="提交成功";
+			if ($status==SUCCESS_MSG) {
+				$ts=isset($d['tags'])?$d['tags']:"";
+				// $status=FAIL_MSG;
+				// $message=$ts;
+				$tarr=explode(',', $ts);
+				foreach ($tarr as $it) {
+					if (is_numeric($it)) {
+						$this->topicm->addTags($tid,$it);
+					}
+				}
+				$message="提交成功";
+			}
 			else $message="提交失败";
 		}
 		echo json_encode(array("status"=>$status,"message"=>$message,"tid"=>$tid));		
+	}
+
+	public function focusTag($tgid=0) {
+		$status=UNKNOWN_MSG;
+		$message="";
+		$tid=0;
+		if (!is_numeric($tgid)) 
+		{
+			$status=FAIL_MSG;  
+			$message="数据有误";
+		}
+		if ($status==UNKNOWN_MSG)
+		{
+			$tid=$this->topicm->focusTags($this->auth,$tgid);
+			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==SUCCESS_MSG) $message="提交成功";
+			else $message="关注失败";
+		}
+		echo json_encode(array("status"=>$status,"message"=>$message));
+	}
+
+	public function loseTag($tgid=0) {
+		$status=UNKNOWN_MSG;
+		$message="";
+		$tid=0;
+		if (!is_numeric($tgid)) 
+		{
+			$status=FAIL_MSG;  
+			$message="数据有误";
+		}
+		if ($status==UNKNOWN_MSG)
+		{
+			$tid=$this->topicm->loseTags($this->auth,$tgid);
+			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==SUCCESS_MSG) $message="提交成功";
+			else $message="取消失败";
+		}
+		echo json_encode(array("status"=>$status,"message"=>$message));
 	}
 
 	public function ansTopic() {
@@ -192,6 +241,33 @@ class Topic extends MY_Controller {
 
 	public function getTags() {
 		echo json_encode($this->topicm->getTags());
+	}
+
+	public function getOneAns() {
+		$d=$this->data;
+		$uid=0;
+		if (!isset($d['uid'])) {
+			$uid=$this->auth;
+		} else $uid=$d['uid'];
+		echo json_encode($this->topicm->getOneAns($uid));
+	}
+
+	public function getOneQue() {
+		$d=$this->data;
+		$uid=0;
+		if (!isset($d['uid'])) {
+			$uid=$this->auth;
+		} else $uid=$d['uid'];
+		echo json_encode($this->topicm->getOneQue($uid));
+	}
+
+	public function getOneTags() {
+		$d=$this->data;
+		$uid=0;
+		if (!isset($d['uid'])) {
+			$uid=$this->auth;
+		} else $uid=$d['uid'];
+		echo json_encode($this->topicm->getOneTags($uid));
 	}
 
 	public function wrapTopic() {

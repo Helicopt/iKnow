@@ -48,7 +48,7 @@ class UserM extends CI_Model {
 			$rpwd=$result['pwd'];
 			if ($rpwd==$pwd) {
 				$_SESSION['id']=$result['id'];
-				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],'status'=>$result['status']);
+				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],'status'=>$result['status'],'ava'=>base_url()."avatar/t/".$id);
 				return $result['id'];
 			}
 			else return 0;
@@ -102,13 +102,14 @@ class UserM extends CI_Model {
 		else return 0;
 	}
 
-	// function getAvatar($id)
-	// {
-	// 	$query=$this->db->get_where($this->userTableName,array('id'=>$id));
-	// 	if ($query->num_rows()<=0) return 0;
-	// 	$result=$query->row_array(0);
-	// 	return $result['avatar'];
-	// }
+	function getAvatar($uid)
+	{
+		$query=$this->sqlm->_where($this->userTableName,array('id'=>$uid));
+		if ($query->num_rows()<=0) return 0;
+		$result=$query->row_array(0);
+		return $result['avatarid'];
+	}
+
 	function getDetails($id)
 	{
 		$returnArray = array();
@@ -117,6 +118,7 @@ class UserM extends CI_Model {
 			$result=$query->row_array();
 			$returnArray['nick'] = $result['nick'];
 			$returnArray['sig'] = $result['sig'];
+			$returnArray['ava'] = base_url()."avatar/t/".$id;
 			//$returnArray['avatar'] = $result['avatar'];
 			//$returnArray['ext'] = $this->avatarm->getExt($result['avatar']);
 		return $returnArray;
@@ -150,19 +152,11 @@ class UserM extends CI_Model {
 		return ($query->num_rows()>0);
 	}	
 	
-	// function setAvatar($id,$k)
-	// {
-	// 	$query = $this -> db -> get_where($this->userTableName, array('id'=>$id));
-	// 	if($query -> num_rows() > 0)
-	// 	{
-	// 		$query = $query -> row_array(0);
-	// 		$this->db->update($this->userTableName,array('avatar'=>$k),array("id"=>$id));
-	// 	}
-	// 	else
-	// 	{
-	// 		return false;
-	// 	}
-	// }
+	function setAvatar($uid, $id)
+	{
+		$this-> sqlm -> _update($this->userTableName,array('avatarid'=>$id),array("id"=>$uid));
+		return $this->db->affected_rows();
+	}
 
 }
 

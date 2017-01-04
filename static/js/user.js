@@ -139,3 +139,32 @@ function alterTags(item) {
 		if (in_tags[i]==1) $('#tags_ti').append('<span class="label label-default">'+tags[i]['title']+'</span> ');
 	}
 }
+
+function changeAVA() {
+	if ($('#avat').val()=='') {
+		alert('empty file!');
+		return 0;
+	}
+	// $('#form0').attr('action',BASE_URL+'avatar/upload');
+	// $('#form0').submit();
+	$.ajaxFileUpload
+            (
+                {
+                    url: BASE_URL+'avatar/upload', //用于文件上传的服务器端请求地址
+                    secureuri: false, //是否需要安全协议，一般设置为false
+                    fileElementId: 'avat', //文件上传域的ID
+                    dataType: 'json', //返回值类型 一般设置为json
+                    success: function (data, status)  //服务器成功响应处理函数
+                    {
+                        if (data.status==0) {
+                        	window.location=window.location;
+                        }else alert('fail');
+
+                    },
+                    error: function (data, status, e)//服务器响应失败处理函数
+                    {
+                        alert(e);
+                    }
+                }
+            )
+}

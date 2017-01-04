@@ -24,7 +24,7 @@ class Explore extends MY_Controller {
 		else $this->load->view('explore',
 			array('cata'=>'explore',
 				'uid'=>$this->auth,
-				'info'=>array('nick'=>$this->user_info['nick'])
+				'info'=>$this->user_info
 				)
 			);
 	}

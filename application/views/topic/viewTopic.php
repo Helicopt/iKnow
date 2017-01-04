@@ -6,15 +6,17 @@
 		<div class="col-xs-3 col-md-3" style="height:100%;padding:0 1px 0 0;">
 			<div style="height:100%;padding-top:10px;background:#FEFEFE;">
 				<div id="avatarDIV" style="float:left;height:64px;width:64px;margin-top:10px;margin-left:20px;background:#FFFFFF;padding:2px 2px 2px 2px;border-radius:3px;">
-					<img style="height:60px;width:60px;" src="../../img/av_default.png" />
+					<img style="height:60px;width:60px;" src="" id="auav"/>
 				</div>
 					<h4 style="margin-top:20px;margin-left:100px;" id="authNick"></h4>
 
 			</div>
 		</div>
 		<div class="col-xs-9 col-md-9" style="background:#FAFAFA;height:100%;">
-			<h2 id="ttitle" style="margin-top:40px;">
+			<h2 id="ttitle" style="margin-top:25px;">
 			</h2>
+			<div id="TTags">
+			</div>
 		</div>
 	</div>
 	<div class="row" id="tbody" style="background:#FFFFFF;margin-top:5px;padding:20px 20px 10px 20px;">
@@ -55,11 +57,17 @@
 			//console.log(data);
 			if (!data['status']) {
 				data=data['info'];
+				var ttags=data['tags'];
+				for (var i=0;i<ttags.length;++i) {
+					var item=ttags[i];
+					$('#TTags').append(genLabel('focusTag',{'id':item['tgid'],'title':item['title']}));
+				}
 				$('#ttitle').html(data['title']);
 				$('#tbody').html(data['html']);
 				$('#tbody').append('<br><span style="color:#cfcfcf;">创建于 '+data['createTime']+'，最后修改 '+data['actTime']+'</span>');
 				var au=data['author_info'];
 				$('#authNick').html(au['nick']);
+				$('#auav').attr('src',au['ava']);
 			} else {
 				if (data['status']!=-1) alert(data['message']);
 			}

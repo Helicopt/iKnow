@@ -91,3 +91,45 @@ function addComment(aid) {
 		});
 
 }
+
+function genStrip(verb,item) {
+	return '<div class="row" style="margin:15px 15px 15px 15px;">在 '+item['time']+' '+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div>';
+}
+
+function genLabel(func,item) {
+	return '<div class="label label-default" id="ssstag_'+item['id']+'" style="cursor:pointer;display:block;float:left;margin:10px 5px 10px 5px;" onclick="'+func+'('+item['id']+');">'+item['title']+'</div>';
+}
+
+function focusTag(tgid) {
+	$.ajax({
+		type: 'post',
+		url: BASE_URL+'topic/focusTag/'+tgid,
+		}).done(function(data){
+			data=JSON.parse(data);
+			if (!data['status']) {
+				alert('已关注');
+			} else {
+				//if (data['status']!=-1) alert(data['message']);
+			}
+		}).fail(function(data){
+			alert("出现错误，请稍后再试");
+		});	
+}
+
+
+function loseTag(tgid) {
+	$.ajax({
+		type: 'post',
+		url: BASE_URL+'topic/loseTag/'+tgid,
+		}).done(function(data){
+			data=JSON.parse(data);
+			if (!data['status']) {
+				$('#ssstag_'+tgid).hide();
+			} else {
+				if (data['status']!=-1) alert(data['message']);
+			}
+		}).fail(function(data){
+			alert("出现错误，请稍后再试");
+		});	
+}
+

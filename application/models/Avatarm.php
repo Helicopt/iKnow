@@ -25,11 +25,6 @@ class AvatarM extends CI_Model {
 	*/
 	var $imgTableName = "avatar";
 	/**
-	* @access private
-	* @var    string
-	*/
-	var $userTableName = "users";
-	/**
 	*
 	* AvatarM构造函数
 	*
@@ -40,66 +35,68 @@ class AvatarM extends CI_Model {
 		parent::__constuct();
 	}	
 
-	function addImg($id,$ext)
+	function addImg($id,$ext,&$k)
 	{
 		$data=array();
-		$data['tid']=$id;
+		$data['uid']=$id;
+		date_default_timezone_set('PRC');
 		$tst=date('Y-m-d H:i:s');
-		$data['k']="av_".md5(($id.$tst));
+		$data['hash']="av_".md5(($id.$tst));
+		$k=$data['hash'];
 		$data['ext']=$ext;
-		$this->db->insert($this->imgTableName, $data);		
-		return $data['k'];
+		$this->sqlm->_insert($this->imgTableName, $data);		
+		return $this->db->insert_id();
 	}
 
 
 	function check($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->sqlm->_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return FALSE;
 		$result=$query->row_array(0);
 		if ($result['status']==0) return TRUE;
 		return FALSE;
 	}
 
-	function getImgByTID($id)
+	function getImgByID($id)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('tid'=>$id,'status'=>1));
+		$query=$this->sqlm->_where($this->imgTableName,array('id'=>$id,'status'=>0));
 		if ($query->num_rows()<=0) return null;
 		$result=$query->row_array(0);
-		return array("k"=>$result['k'],"ext"=>$result['ext']);
+		return array("k"=>$result['hash'],"ext"=>$result['ext']);
 	}
 
 	function exists($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->sqlm->_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return FALSE;
 		$result=$query->row_array(0);
-		if ($result['status']==1) return TRUE;
+		if ($result['status']==0) return TRUE;
 		return FALSE;
 	}
 
 	function getTIDByKey($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->sqlm->_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return 0;
 		$result=$query->row_array(0);
-		return $result['tid'];
+		return $result['uid'];
 	}
 
 	function getExt($key)
 	{
-		$query=$this->db->get_where($this->imgTableName,array('k'=>$key));
+		$query=$this->db->get_where($this->imgTableName,array('hash'=>$key));
 		if ($query->num_rows()<=0) return "";
 		$result=$query->row_array(0);
 		return $result['ext'];
 	}
 
-	function sign($key,$oldKey='0')
-	{
-		if (strlen($oldKey)>2)
-		$this->db->update($this->imgTableName,array('status'=>2),array('k'=>$oldKey));	
-		$this->db->update($this->imgTableName,array('status'=>1),array('k'=>$key));	
-	}
+	// function sign($key,$oldKey='0')
+	// {
+	// 	if (strlen($oldKey)>2)
+	// 	$this->db->update($this->imgTableName,array('status'=>2),array('k'=>$oldKey));	
+	// 	$this->db->update($this->imgTableName,array('status'=>1),array('k'=>$key));	
+	// }
 	
 
 }

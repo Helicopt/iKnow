@@ -51,6 +51,16 @@ class TopicM extends CI_Model {
 	* @access private
 	* @var    string
 	*/
+	var $focusTableName = "focus";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $fieldTableName = "field";
+	/**
+	* @access private
+	* @var    string
+	*/
 	var $tagTableName = "tag";
 	/**
 	*
@@ -85,6 +95,30 @@ class TopicM extends CI_Model {
 	function getTags() {
 		$query=$this->sqlm->_where($this->tagTableName,array());
 		return $query->result_array();
+	}
+
+	function getTTags($tid) {
+		$query=$this->db->query("SELECT `tgid`,`title` from ".$this->fieldTableName.
+			" join ".$this->tagTableName." on `tgid`=`id` where `tpid`=".$tid);
+		return $query->result_array();
+	}
+
+	function addTags($tid,$tgid) {
+		$this->sqlm->_insert($this->fieldTableName,array('tgid'=>$tgid,'tpid'=>$tid));
+		return $this->db->affected_rows();
+	}
+	
+	function focusTags($uid,$tgid) {
+		$k=$this->sqlm->_where($this->focusTableName,array('tgid'=>$tgid,'uid'=>$uid))->num_rows();
+		if ($k==0) {
+			$this->sqlm->_insert($this->focusTableName,array('tgid'=>$tgid,'uid'=>$uid));
+			return $this->db->affected_rows();
+		} else return 0;
+	}
+	
+	function loseTags($uid,$tgid) {
+		$this->sqlm->_delete($this->focusTableName,array('tgid'=>$tgid,'uid'=>$uid));
+		return $this->db->affected_rows();
 	}
 	
 	function addQ($uid,$info)
@@ -133,6 +167,63 @@ class TopicM extends CI_Model {
 			$r=$query->row_array(0);
 			if ($r['parent']>0) $this->updateAct($r['parent'],$tst);
 		}
+	}
+
+	function getOneQue($uid) {
+		$query=$this->sqlm->_where($this->topicTableName,array('author'=>$uid));
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$res[]=array(
+				'id'=>$it['id'],
+				'title'=>$it['title'],
+				'time'=>$it['createTime']
+				);
+		}
+		return $res;
+	}
+
+	function getTitle($tid) {
+		// $q=$this->db->query("call `get_title`($tid)");
+		$q=$this->db->query("select `title` from topic where id='$tid'");
+		$res="";
+		if ($q->num_rows()>0) {
+			$res=$q->row_array(0)['title'];
+		}
+		return $res;
+	}
+
+	function getOneTags($uid) {
+		$query=$this->db->query("SELECT `tgid`,`title` from ".$this->focusTableName." join ".$this->tagTableName
+			." on `tgid`=`id` where `uid`='$uid'");
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$res[]=array(
+				'id'=>$it['tgid'],
+				'title'=>$it['title'],
+				);
+		}
+		return $res;
+	}
+
+
+	function getOneAns($uid) {
+		$query=$this->sqlm->_where($this->ansTableName,array('author'=>$uid));
+		$cnt=$query->num_rows();
+		$res=array();
+		$tmp=$query->result_array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$tmp[$i];
+			$res[]=array(
+				'id'=>$it['topicid'],
+				'title'=>$this->getTitle($it['topicid']),
+				'time'=>$it['createTime']
+				);
+		}
+		return $res;
 	}
 
 	function briefTalk($d)
@@ -214,6 +305,8 @@ class TopicM extends CI_Model {
 			$returnArray['author'] = $result['author'];
 			$returnArray['author_info'] = $this->userm->getDetails($result['author']);
 			$returnArray['s'] = $result['status'];
+			$returnArray['tags'] = $this->getTTags($result['id']);
+
 			// $sub=$this->getSub($id);
 			// $returnArray['subQ'] = $sub['subQ'];
 

@@ -12,6 +12,7 @@
 		<script type="text/javascript" src="<?php echo base_url(); ?>static/js/user.js"></script>
 		<script type="text/javascript" src="<?php echo base_url(); ?>static/js/topic.js"></script>
 		<script type="text/javascript" src="<?php echo base_url(); ?>static/js/trumbowyg.min.js"></script>
+		<script type="text/javascript" src="<?php echo base_url(); ?>static/js/ajaxfileupload.js"></script>
 		<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>static/css/global.css"/>
 		<script type="text/javascript">BASE_URL='<?php echo base_url();?>';</script>
 	</head>
@@ -94,14 +95,21 @@
 			$('#submit_que').click(function() {
 				var data=$('#editor').val();
 				var title=$('#qtitle').val();
+				var new_tags="";
+				for (var i=0;i<tags.length;++i) {
+					if (in_tags[i]==1) {
+						new_tags=new_tags+','+tags[i]['id'];
+					}
+				}
+				if (new_tags.length>0) new_tags=new_tags.substr(1);
 				$.ajax({
 					type: 'post',
-					data: JSON.stringify({'title':title,'html':data}),
+					data: JSON.stringify({'title':title,'html':data,'tags':new_tags}),
 					url: BASE_URL+'topic/newTopic'
 					}).done(function(data){
 						data=JSON.parse(data);
 						if (!data['status']) {
-							window.location="./topic/t/"+data['tid'];
+							window.location=BASE_URL+"topic/t/"+data['tid'];
 						} else {
 							if (data['status']!=-1) alert(data['message']);
 						}

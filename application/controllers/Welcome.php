@@ -25,7 +25,7 @@ class Welcome extends MY_Controller {
 		else $this->load->view('main',
 			array('cata'=>'home',
 				'uid'=>$this->auth,
-				'info'=>array('nick'=>$this->user_info['nick'])
+				'info'=>$this->user_info
 				)
 			);
 	}
