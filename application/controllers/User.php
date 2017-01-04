@@ -139,6 +139,36 @@ class User extends MY_Controller {
 		echo json_encode($this->edum->getEduById($uid));		
 	}
 
+	public function look($oid='0') {
+		if ($oid=='0'||!is_numeric($oid)) $oid=$this->auth;
+		if ($oid!=$this->auth)
+		$this->load->view('user/other',
+			array(
+				'cata'=>'profile',
+				'uid'=>$this->auth,
+				'oid'=>$oid,
+				'info'=>$this->user_info,
+				'other'=>$this->userm->getDetails($oid)
+				));
+		else $this->index();
+	}
+
+	public function dofollow() {
+		$d=$this->data;
+		$uid='0';
+		if (isset($d['uid'])) $uid=$d['uid'];
+		$status=$this->userm->dofollow($this->auth,$uid)?SUCCESS_MSG:FAIL_MSG;
+		echo json_encode(array("status"=>$status,"message"=>""));
+	}
+
+	public function unfollow() {
+		$d=$this->data;
+		$uid='0';
+		if (isset($d['uid'])) $uid=$d['uid'];
+		$status=$this->userm->unfollow($this->auth,$uid)?SUCCESS_MSG:FAIL_MSG;
+		echo json_encode(array("status"=>$status,"message"=>""));
+	}
+
 	public function ajax_editEdu() {
 		$d=$this->data;
 		$status=UNKNOWN_MSG;
@@ -231,13 +261,23 @@ class User extends MY_Controller {
 		$this->load->view('user/profile');
 	}
 	
-	public function lookAt() {
-		$this->load->view('user/look');
-	}
+	// public function lookAt() {
+	// 	$this->load->view('user/look');
+	// }
 	
 	public function resetPWD() {
 		$this->load->view('user/resetPWD');
 	}
+
+	public function getFollowee() {
+		$d=$this->data;
+		$uid=0;
+		if (!isset($d['uid'])) {
+			$uid=$this->auth;
+		} else $uid=$d['uid'];
+		echo json_encode($this->userm->getFollowees($uid));
+	}
+
 	
 }
 

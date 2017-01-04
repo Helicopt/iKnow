@@ -34,8 +34,7 @@
 					<ul class="nav navbar-nav">
 						<li class="<?php echo $cata=="home"?"active":""; ?>"><a href="<?php echo base_url();?>"><i class="glyphicon glyphicon-home"></i> 首页</a></li>
 						<li class="<?php echo $cata=="explore"?"active":""; ?>"><a href="<?php echo base_url();?>explore"><i class="glyphicon glyphicon-globe"></i> 探索</a></li>
-						<li class="<?php echo $cata=="topic"?"active":""; ?>"><a href="#"><i class="glyphicon glyphicon-book"></i> 话题</a></li>
-						<?php if ($uid) echo '<li class="'.($cata=="msg"?"active":"").'"><a href="'.base_url().'user/msgs"><i class="glyphicon glyphicon-envelope"></i> 消息</a></li>'; ?>
+						<li class="<?php echo $cata=="topic"?"active":""; ?>"><a href="<?php echo base_url();?>topic"><i class="glyphicon glyphicon-book"></i> 话题</a></li>
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
 						<?php if ($uid) echo '<li style="margin-top:8px;margin-left:10px;"><button class="btn btn-success" data-toggle="modal" data-target="#ques"><i class="glyphicon glyphicon-edit"></i> 提问</button></li>'; ?>
@@ -90,10 +89,11 @@
 		<script type="text/javascript">
 			var tags={};
 			var in_tags={};
+			var ed_tp='new';
 			$(function() {
 
 			$('#submit_que').click(function() {
-				var data=$('#editor').val();
+				var data=$('#editor').trumbowyg('html');
 				var title=$('#qtitle').val();
 				var new_tags="";
 				for (var i=0;i<tags.length;++i) {

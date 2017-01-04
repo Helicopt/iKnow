@@ -168,3 +168,47 @@ function changeAVA() {
                 }
             )
 }
+
+function genPeo(item) {
+	return '<div style="float:left;margin-right:10px;height:80px;width:62px;text-align:center;">\
+		<a href="'+BASE_URL+'user/look/'+item['userid']+'"><img style="height:60px;width:60px;" src="'+BASE_URL+'avatar/t/'+item['userid']+'"/>\
+		'+item['nick']+'</a>\
+	</div>';
+}
+
+function alterF(uid) {
+	if (following=='yes') {
+		$.ajax({
+		type: 'post',
+		url: BASE_URL+'user/unfollow',
+		data: JSON.stringify({'uid':uid})
+		}).done(function(data){
+			data=JSON.parse(data);
+			if (!data['status']) {
+				window.location=window.location;
+			} else {
+				if (data['status']!=-1) alert(data['message']);
+			}
+		}).fail(function(data){
+			alert("出现错误，请稍后再试");
+		});
+
+	} else {
+		$.ajax({
+		type: 'post',
+		url: BASE_URL+'user/dofollow',
+		data: JSON.stringify({'uid':uid})
+		}).done(function(data){
+			data=JSON.parse(data);
+			if (!data['status']) {
+				window.location=window.location;
+			} else {
+				if (data['status']!=-1) alert(data['message']);
+			}
+		}).fail(function(data){
+			alert("出现错误，请稍后再试");
+		});
+
+
+	}
+}

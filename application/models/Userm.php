@@ -27,7 +27,22 @@ class UserM extends CI_Model {
 	* @access private
 	* @var    string
 	*/
+	var $flwTableName = "follow";
+	/**
+	* @access private
+	* @var    string
+	*/
 	var $topicTableName = "topic";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $grpTableName = "groups";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $blgTableName = "belong";
 	/**
 	*
 	* UserM构造函数
@@ -48,7 +63,9 @@ class UserM extends CI_Model {
 			$rpwd=$result['pwd'];
 			if ($rpwd==$pwd) {
 				$_SESSION['id']=$result['id'];
-				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],'status'=>$result['status'],'ava'=>base_url()."avatar/t/".$result['id']);
+				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],
+					'status'=>$result['status'],'ava'=>base_url()."avatar/t/".$result['id'],
+					'isAdmin'=>$this->userm->belongTo($result['id'],'admin'));
 				return $result['id'];
 			}
 			else return 0;
@@ -110,15 +127,55 @@ class UserM extends CI_Model {
 		return $result['avatarid'];
 	}
 
+	function isFollowed($a,$b) {
+		$query=$this->sqlm->_where($this->flwTableName,array('followerid'=>$a,'userid'=>$b));
+		return $query->num_rows();
+	}
+
+	function getGIDByName($gn) {
+		$query=$this->sqlm->_where($this->grpTableName,array('title'=>$gn));
+		if ($query->num_rows()==0) return "";
+		return $query->row_array(0)['id'];
+	}
+
+	function belongTo($uid, $grp) {
+		$gid=$this->getGIDByName($grp);
+		$query=$this->sqlm->_where($this->blgTableName,array('uid'=>$uid,'gid'=>$gid));
+		return $query->num_rows();
+	}
+
+	function dofollow($a,$b) {
+		if ($b=='0') {
+			return 0;
+		}
+		else {
+			$query=$this->sqlm->_insert($this->flwTableName,array('followerid'=>$a,'userid'=>$b));
+			return $this->db->affected_rows();
+		}
+	}
+
+	function unfollow($a,$b) {
+		if ($b=='0') {
+			return 0;
+		}
+		else {
+			$query=$this->sqlm->_delete($this->flwTableName,array('followerid'=>$a,'userid'=>$b));
+			return $this->db->affected_rows();
+		}
+	}
+
 	function getDetails($id)
 	{
 		$returnArray = array();
 			$query=$this->sqlm->_where($this->userTableName,array('id'=>$id));
 			if ($query->num_rows()<=0) return FALSE;
 			$result=$query->row_array();
+			$returnArray['id'] = $result['id'];
 			$returnArray['nick'] = $result['nick'];
 			$returnArray['sig'] = $result['sig'];
 			$returnArray['ava'] = base_url()."avatar/t/".$id;
+			$returnArray['following'] = $this->isFollowed($this->auth,$result['id'])?'yes':'no';
+			$returnArray['isAdmin'] = $this->belongTo($result['id'],'admin');
 			//$returnArray['avatar'] = $result['avatar'];
 			//$returnArray['ext'] = $this->avatarm->getExt($result['avatar']);
 		return $returnArray;
@@ -156,6 +213,12 @@ class UserM extends CI_Model {
 	{
 		$this-> sqlm -> _update($this->userTableName,array('avatarid'=>$id),array("id"=>$uid));
 		return $this->db->affected_rows();
+	}
+
+	function getFollowees($uid) {
+		$query=$this->db->query("SELECT `userid`,`nick` from ".$this->flwTableName." join ".$this->userTableName
+			." on `id`=`userid` where `followerid`='$uid'");		
+		return $query->result_array();
 	}
 
 }

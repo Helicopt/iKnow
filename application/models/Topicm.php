@@ -61,6 +61,16 @@ class TopicM extends CI_Model {
 	* @access private
 	* @var    string
 	*/
+	var $assessTableName = "assess";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $favTableName = "favor";
+	/**
+	* @access private
+	* @var    string
+	*/
 	var $tagTableName = "tag";
 	/**
 	*
@@ -132,6 +142,17 @@ class TopicM extends CI_Model {
 		$data['actTime']=time();
 		$this->sqlm->_insert($this->topicTableName, $data);		
 		return $this->db->insert_id();
+	}
+
+	function editQ($uid,$info)
+	{
+		if ($this->getOwner($info['tid'])!=$uid&&!$this->userm->belongTo($uid,'admin')) return false;
+		$data=array();
+		$data['title']=$info['title'];
+		$data['infoid']=$this->addInfo($info['html']);
+		$data['actTime']=time();
+		$this->sqlm->_update($this->topicTableName, $data, array('id'=>$info['tid']));		
+		return $this->db->affected_rows();
 	}
 
 	function addA($uid,$info)
@@ -261,6 +282,47 @@ class TopicM extends CI_Model {
 	// 	return array('ans' => $ans, 'subQ' => $subQ);
 	// }
 
+	function getAgree($aid) {
+		$query=$this->db->query("SELECT * from ".$this->assessTableName." where ansid='$aid' and value='agree'");
+		return $query->num_rows();
+	}
+
+	function getDisagree($aid) {
+		$query=$this->db->query("SELECT * from ".$this->assessTableName." where ansid='$aid' and value='disagree'");
+		return $query->num_rows();
+	}
+
+	function zan($uid, $aid) {
+		$query=$this->db->query("SELECT * from ".$this->assessTableName." where ansid='$aid' and uid='$uid'");
+		$cnt=$query->num_rows();
+		if ($cnt==0) {
+			$this->sqlm->_insert($this->assessTableName,array('uid'=>$uid,'ansid'=>$aid,'value'=>'agree'));
+			return 1;
+		} else {
+			if ($query->row_array(0)['value']=='disagree') {
+				$this->sqlm->_update($this->assessTableName,array('value'=>'agree'),array('uid'=>$uid,'ansid'=>$aid));
+				return 2;
+			} else return 0;
+		}
+		return -1;
+	}
+
+
+	function cai($uid, $aid) {
+		$query=$this->db->query("SELECT * from ".$this->assessTableName." where ansid='$aid' and uid='$uid'");
+		$cnt=$query->num_rows();
+		if ($cnt==0) {
+			$this->sqlm->_insert($this->assessTableName,array('uid'=>$uid,'ansid'=>$aid,'value'=>'disagree'));
+			return 1;
+		} else {
+			if ($query->row_array(0)['value']=='agree') {
+				$this->sqlm->_update($this->assessTableName,array('value'=>'disagree'),array('uid'=>$uid,'ansid'=>$aid));
+				return 2;
+			} else return 0;
+		}
+		return -1;
+	}
+
 	function viewAnsOfTalk($uid,$tid) {
 		$query=$this->sqlm->_where($this->ansTableName,array('topicid'=>$tid));
 		$cnt=$query->num_rows();
@@ -270,6 +332,8 @@ class TopicM extends CI_Model {
 			$item=$it;
 			$item['author_info']=$this->userm->getDetails($it['author']);
 			$item['html']=$this->getInfoById($it['infoid']);
+			$item['ag']=$this->getAgree($it['id']);
+			$item['da']=$this->getDisagree($it['id']);
 			$res[]=$item;
 		}
 		return $res;
@@ -289,6 +353,30 @@ class TopicM extends CI_Model {
 		return $res;
 	}
 
+	function isFavor($uid,$tid) {
+		$query=$this->sqlm->_where($this->favTableName,array('uid'=>$uid,'tpid'=>$tid));
+		return $query->num_rows();		
+	}
+	function dofavor($uid,$tid) {
+		if ($tid=='0') {
+			return 0;
+		}
+		else {
+			$query=$this->sqlm->_insert($this->favTableName,array('uid'=>$uid,'tpid'=>$tid));
+			return $this->db->affected_rows();
+		}
+	}
+
+	function unfavor($uid,$tid) {
+		if ($tid=='0') {
+			return 0;
+		}
+		else {
+			$query=$this->sqlm->_delete($this->favTableName,array('uid'=>$uid,'tpid'=>$tid));
+			return $this->db->affected_rows();
+		}
+	}
+
 	function viewTalk($uid,$id)
 	{
 
@@ -297,7 +385,7 @@ class TopicM extends CI_Model {
 			if ($query->num_rows()<=0) return null;
 			$result=$query->row_array(0);
 			$type=$result['status'];
-			if (($type&sCLOSED)&&!$this->userm->isAdmin()) return null;
+			if (($type&sCLOSED)&&!$this->userm->belongTo($uid,'admin')) return null;
 			$returnArray['createTime'] = $result['createTime'];
 			$returnArray['actTime'] = $result['actTime'];
 			$returnArray['title'] = $result['title'];
@@ -306,6 +394,7 @@ class TopicM extends CI_Model {
 			$returnArray['author_info'] = $this->userm->getDetails($result['author']);
 			$returnArray['s'] = $result['status'];
 			$returnArray['tags'] = $this->getTTags($result['id']);
+			$returnArray['favor'] = $this->isFavor($uid,$result['id'])?'yes':'no';
 
 			// $sub=$this->getSub($id);
 			// $returnArray['subQ'] = $sub['subQ'];
@@ -332,11 +421,11 @@ class TopicM extends CI_Model {
 
 	function getOwner($id)
 	{
-		$query=$this->db->get_where($this->topicTableName,array('id'=>$id));
+		$query=$this->sqlm->_where($this->topicTableName,array('id'=>$id));
 		if ($query->num_rows()>0) 
 		{
 			$res=$query->row_array();
-			return $res['owner'];
+			return $res['author'];
 		}
 		else return -1;
 	}
@@ -441,7 +530,80 @@ class TopicM extends CI_Model {
 			$res['t'.(string)$i]=$this->briefTalk($result);
 		}
 		return $res;		
-	}	
+	}
+
+	function all_rec($uid) {
+		$query=$this->db->query("SELECT * from topic order by actTime desc");
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$res[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
+				'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
+		}
+		return $res;
+	}
+
+	function peo_rec($uid) {
+		$query=$this->db->query("SELECT * from topic where author in (select userid from follow where followerid='$uid')  order by actTime desc");
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$res[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
+				'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
+		}
+		return $res;
+	}
+
+	function fav_rec($uid) {
+		$query=$this->db->query("SELECT * from topic where id in (select tpid from favor where uid='$uid') order by actTime desc");
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$res[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
+				'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
+		}
+		return $res;
+	}
+
+	function fie_rec($uid) {
+		$res=array();
+		$query1=$this->db->query("SELECT tgid from focus where uid='$uid'");
+		$cnt1=$query1->num_rows();
+		for ($i=0;$i<$cnt1;++$i) {
+			$it1=$query1->row_array($i)['tgid'];
+			$query2=$this->db->query("SELECT * from field join topic on tpid=topic.id where tgid='$it1'");
+			$cnt2=$query2->num_rows();
+			for ($j=0;$j<$cnt2;++$j) {
+				$it=$query2->row_array($j);
+				$res[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
+					'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
+			}
+		}
+		return $res;
+	}
+
+	function sort_rec($uid) {
+		$res=array();
+		$query1=$this->db->query("SELECT * from tag");
+		$cnt1=$query1->num_rows();
+		for ($i=0;$i<$cnt1;++$i) {
+			$it1=$query1->row_array($i);
+			$tg=$it1['id'];
+			$res2=array();
+			$query2=$this->db->query("SELECT * from field join topic on tpid=topic.id where tgid='$tg'");
+			$cnt2=$query2->num_rows();
+			for ($j=0;$j<$cnt2;++$j) {
+				$it=$query2->row_array($j);
+				$res2[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
+					'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
+			}
+			$res[]=array('title'=>$it1['title'],'info'=>$res2);
+		}
+		return $res;
+	}
 
 }
 

@@ -3,28 +3,22 @@
 
 <div class="container" style="width:850px;margin-top:80px;">
 	<div class="row">
-		<div style="padding-bottom:30px;background:#FEFEFE;border-radius:4px;box-shadow:1px 1px 1px #888888;">
+		<div style="padding-bottom:50px;background:#FEFEFE;border-radius:4px;box-shadow:1px 1px 1px #888888;">
 			<div id="featureDIV" style="background:#AAAABB;height:180px;"> </div> 
-			<div id="avatarDIV" data-toggle="tooltip" data-placement="top" title="更换头像" style="cursor:pointer;float:left;height:124px;width:124px;margin-top:-40px;margin-left:60px;background:#FFFFFF;padding:2px 2px 2px 2px;border-radius:3px;">
-				<img style="height:120px;width:120px;" src="<?php echo $info['ava']; ?>" alt="更换头像"  onclick="$('#avat').click();" id="avaIMG"/>
-				<form enctype="multipart/form-data" method="post" action="" id="form0">
-					<input type="file" style="display:none" id="avat" name="ava" onchange="changeAVA();"/>
-				</form>
+			<div id="avatarDIV"  style="float:left;height:124px;width:124px;margin-top:-40px;margin-left:60px;background:#FFFFFF;padding:2px 2px 2px 2px;border-radius:3px;">
+				<img style="height:120px;width:120px;" src="<?php echo $other['ava']; ?>"  id="avaIMG"/>
 			</div>
-				<h3 id="nick" style="margin-top:20px;margin-left:250px;"><?php echo $info['nick'];?></h3>
-				<input type="text" class="form-control" style="display:none;margin-top:20px;margin-left:250px;width:300px;" id="e_nick"/>
+			<div id="followD" style="float:left;" onclick="alterF(<?php echo $oid;?>);">
+			</div>
+				<h3 id="nick" style="margin-top:20px;margin-left:250px;"><?php echo $other['nick'];?></h3>
 				<div style="margin-top:10px;margin-left:250px;">
 								<div class="input-group input-group-sm" style="width:420px;">
 								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i> 简介</span>
-								<span  class="form-control" style="" id="sig" ><?php echo $info['sig'];?></span>
-								<input type="text" class="form-control" style="display:none;" id="e_sig"/>
+								<span  class="form-control" style="" id="sig" ><?php echo $other['sig'];?></span>
 								</div>
 				</div>
 				<div id="eduDIV">
 				</div>
-				<button style="margin-left:250px;margin-top:10px;margin-right:5px;" class=" btn btn-success btn-xs btn_rm" onclick="addEDU();"><i class="glyphicon glyphicon-plus"></i></button>
-
-                <a style="cursor:pointer;float:right;margin-right:15px;" id="edit_btn"><i class="glyphicon glyphicon-pencil"></i> <span id="wd">编辑</span></a>
 
 		</div>
 	</div>
@@ -76,14 +70,23 @@
 
 <script type="text/javascript">
 	var tp=0;
-	var cols={};
-	var majs={};
+	var following="<?php echo $other['following']; ?>";
 	$(function() {
- 		$("[data-toggle='tooltip']").tooltip();
+		$('#followD').css('display','block');
+		$('#followD').css('width','60px');
+		$('#followD').css('margin-left','-92px');
+		$('#followD').css('margin-top','90px');
+		if (following=='yes') {
+			$('#followD').attr('class','btn btn-success btn-xs');
+			$('#followD').html('已关注');
+		} else {
+			$('#followD').attr('class','btn btn-primary btn-xs');
+			$('#followD').html('关注');			
+		}
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'user/ajax_getOV',
-			data: JSON.stringify({'ovid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'ovid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			data=data[0];
@@ -98,7 +101,7 @@
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'topic/getOneAns',
-			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'uid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			var cnt=data.length;
@@ -115,7 +118,7 @@
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'topic/getOneTags',
-			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'uid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			var cnt=data.length;
@@ -123,7 +126,7 @@
 				$('#concern').css('height',(16*cnt).toString()+'px');
 			}
 			for (var i=0;i<cnt;++i) {
-				$('#tag_show').append(genLabel('loseTag',data[i]));
+				$('#tag_show').append(genLabel('focusTag',data[i]));
 			}
 		}).fail(function(){
 			alert("出现错误，请稍后再试");
@@ -132,7 +135,7 @@
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'user/getFollowee',
-			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'uid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			console.log(data);
@@ -150,7 +153,7 @@
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'topic/getOneQue',
-			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'uid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			var cnt=data.length;
@@ -167,7 +170,7 @@
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'user/ajax_getEduById',
-			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
+			data: JSON.stringify({'uid':'<?php echo $oid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
 			for (var i=0;i<data.length;++i){
@@ -179,76 +182,6 @@
 			$('.btn_rm').hide();
 		}).fail(function(){
 			alert("出现错误，请稍后再试");
-		});
-		$('#edit_btn').click(function() {
-			$('#wd').html(tp?"编辑":"保存");
-			if (tp) {
-				$('#nick').show();
-				$('#e_nick').hide();
-				$('#sig').show();
-				$('#e_sig').hide();
-				$('#eduDIV .input-group-btn').hide();
-				$('.btn_rm').hide();
-				$('.jlab').show();
-				var rdata={'nick':$('#e_nick').val(),'sig':$('#e_sig').val()};
-						$.ajax({
-							type: 'post',
-							url: BASE_URL+'user/ajax_setProfile',
-							data: JSON.stringify(rdata)
-							}).done(function(data){
-								data=JSON.parse(data);
-								if (!data['status']) {
-									$('#nick').html($('#e_nick').val());
-									$('#sig').html($('#e_sig').val());
-								} else {
-									alert(data['message']);
-								}
-							}).fail(function(){
-								alert("出现错误，请稍后再试");
-							});
-
-			}else {
-				$.ajax({
-					type: 'post',
-					url: BASE_URL+'user/ajax_getColleges',
-				}).done(function(data){
-					data=JSON.parse(data);
-					cols=data;
-					$(".colul").html('');
-						for (var i=0;i<cols.length;++i) {
-							$(".colul").append("<li><a style=\"cursor:pointer;\"onclick=\"changeCOL($(this));\">"+cols[i]['title']+"</a></li>");
-						}
-
-				}).fail(function(){
-					alert("出现错误，请稍后再试");
-				});
-				$.ajax({
-					type: 'post',
-					url: BASE_URL+'user/ajax_getMajors',
-				}).done(function(data){
-					data=JSON.parse(data);
-					majs=data;
-
-					$(".majul").html('');
-					for (var i=0;i<majs.length;++i) {
-						$(".majul").append("<li><a style=\"cursor:pointer;\" onclick=\"changeMAJ($(this));\">"+majs[i]['title']+"</a></li>");
-					}
-
-				}).fail(function(){
-					alert("出现错误，请稍后再试");
-				});
-
-				$('#eduDIV .input-group-btn').show();
-				$('.jlab').hide();
-				$('#nick').hide();
-				$('#sig').hide();
-				$('.btn_rm').show();
-				$('#e_nick').show();
-				$('#e_nick').val($('#nick').html());
-				$('#e_sig').show();
-				$('#e_sig').val($('#sig').html());
-			}
-			tp^=1;			
 		});
 	});
 
