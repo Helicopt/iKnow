@@ -136,6 +136,12 @@ class UserM extends CI_Model {
 		$this->sqlm->_update($this->userTableName,$data,array('id'=>$id));
 		return TRUE;
 	}
+
+	function getUserOV($uid) {
+		$query=$this->db->query("CALL `overview1`($uid)");
+		$res=$query->result_array();
+		return $res;
+	}
 	
 	function userExists($uid) {
 		if (!is_numeric($uid))return false;

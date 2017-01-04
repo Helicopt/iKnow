@@ -33,12 +33,12 @@
 			<div class="col-xs-12 col-md-10" style="height:100%;background:#f6f6f6;">
 				<div class="col-xs-6 col-md-6">
 					<div class="row">
-						<h3>领域</h3>
+						<h3 id="fi">领域</h3>
 					</div>
 				</div>
 				<div class="col-xs-6 col-md-6">
 					<div class="row">
-						<h3>人</h3>
+						<h3 id="pe">人</h3>
 					</div>
 				</div>
 			</div>
@@ -59,7 +59,7 @@
 		<div style="height:330px;background:#FEFEFE;border-radius:4px;box-shadow:1px 1px 1px #888888; margin-top:20px;margin-bottom:40px;">
 			<div class="col-xs-12 col-md-2" style="height:100%;background:#ffffff;box-shadow:1px 1px 1px #888888;">
 				<h2 style="text-align:center;">回答</h2>		
-				<h2 style="text-align:center;" id="qnum">0个</h2>
+				<h2 style="text-align:center;" id="anum">0个</h2>
 			</div>
 			<div class="col-xs-12 col-md-10" style="height:100%;background:#f6f6f6;">
 			</div>
@@ -72,6 +72,22 @@
 	var cols={};
 	var majs={};
 	$(function() {
+
+		$.ajax({
+			type: 'post',
+			url: BASE_URL+'user/ajax_getOV',
+			data: JSON.stringify({'ovid':'<?php echo $uid;?>'})
+		}).done(function(data){
+			data=JSON.parse(data);
+			data=data[0];
+			$('#qnum').html(data['qcnt']);
+			$('#anum').html(data['acnt']);
+			$('#fi').html(data['fcnt']+' 个领域');
+			$('#pe').html(data['flcnt']+' 人');
+		}).fail(function(){
+			alert("出现错误，请稍后再试");
+		});
+
 		$.ajax({
 			type: 'post',
 			url: BASE_URL+'user/ajax_getEduById',

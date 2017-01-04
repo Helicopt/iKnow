@@ -98,6 +98,15 @@ class User extends MY_Controller {
 		$status=$this->userm->setProfile($this->auth,$this->data)?SUCCESS_MSG:FAIL_MSG;
 		echo json_encode(array("status"=>$status));
 	}
+
+	public function ajax_getOV() {
+		$d=$this->data;
+		$ovid=0;
+		if (!isset($d['ovid'])) {
+			$ovid=$this->auth;
+		} else $ovid=$d['ovid'];
+		echo json_encode($this->userm->getUserOV($ovid));
+	}
 		
 	// public function setAvatar() {
 	// 	if (!$this->auth) return;		
