@@ -10,7 +10,6 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-define('tVISIBLE', 4);
 define('sPENDING', 1);
 define('sFINISHED', 2);
 define('sCLOSED', 4);
@@ -34,37 +33,94 @@ class TopicM extends CI_Model {
 	*/
 	var $topicTableName = "topic";
 	/**
+	* @access private
+	* @var    string
+	*/
+	var $ansTableName = "answer";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $cmtTableName = "comment";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $infoTableName = "info";
+	/**
+	* @access private
+	* @var    string
+	*/
+	var $tagTableName = "tag";
+	/**
 	*
 	* TopicM构造函数
 	*
 	*/
 	function __constuct()
 	{
-		$this->load->model('userm');
-		$this->load->model('imgm');
 		parent::__constuct();
 	}	
-	
-	function addTalk($id,$info,$parent=0)
-	{
-		if ($parent>0)
-		{
-			$p=$this->viewTalkInfo($parent);	
-			if ((((int)$p['s'])&sPENDING)==0) return -1;
+
+	function addInfo($val) {
+		$this->sqlm->_insert($this->infoTableName,array('value'=>$val));
+		return $this->db->insert_id();
+	}
+
+	function topic_exists($tid) {
+		$query=$this->sqlm->_where($this->topicTableName,array('id'=>$tid));
+		return $query->num_rows();
+	}
+
+
+	function getInfoById($iid) {
+		$query=$this->sqlm->_where($this->infoTableName,array('id'=>$iid));
+		$html="";
+		if ($query->num_rows()>0) {
+			$html=$query->row_array(0);
 		}
+		return $html['value'];
+	}
+
+	function getTags() {
+		$query=$this->sqlm->_where($this->tagTableName,array());
+		return $query->result_array();
+	}
+	
+	function addQ($uid,$info)
+	{
 		$data=array();
 		$data['title']=$info['title'];
-		$data['_desc']=$info['desc'];
-		$data['owner']=$id;
-		$data['parent']=$parent;
-		if ($parent==0) $data['dep']=0; else $data['dep']=$p['dep']+1;
+		$data['infoid']=$this->addInfo($info['html']);
+		$data['author']=$uid;
 		$data['status']=sPENDING;
-		if (isset($info['type'])) $data['type']=$info['type']; else $data['type']=1;
-		$data['type']|=tVISIBLE;
-		$tst=date('Y-m-d H:i:s');
-		$data['actTime']=$tst;
-		$this->updateAct($parent,$tst);
-		$this->db->insert($this->topicTableName, $data);		
+		$data['views']=0;
+		$data['actTime']=time();
+		$this->sqlm->_insert($this->topicTableName, $data);		
+		return $this->db->insert_id();
+	}
+
+	function addA($uid,$info)
+	{
+		$data=array();
+		$data['topicid']=$info['tid'];
+		$data['infoid']=$this->addInfo($info['html']);
+		$data['author']=$uid;
+		$data['status']=sPENDING;
+		$data['actTime']=time();
+		$this->sqlm->_insert($this->ansTableName, $data);		
+		return $this->db->insert_id();
+	}
+
+
+	function addC($uid,$info)
+	{
+		$data=array();
+		$data['ansid']=$info['aid'];
+		$data['txt']=$info['val'];
+		$data['author']=$uid;
+		$data['status']=sPENDING;
+		$this->sqlm->_insert($this->cmtTableName, $data);
 		return $this->db->insert_id();
 	}
 
@@ -97,53 +153,70 @@ class TopicM extends CI_Model {
 		return $res;
 	}
 
-	function getSub($id)
-	{
-		$ans = array();
-		$subQ = array();
-		$query=$this->db->order_by('id','ASC')->get_where($this->topicTableName,array('parent'=>$id));		
+	// function getSub($id)
+	// {
+	// 	$ans = array();
+	// 	$subQ = array();
+	// 	$query=$this->db->order_by('id','ASC')->get_where($this->topicTableName,array('parent'=>$id));		
+	// 	$cnt=$query->num_rows();
+	// 	for ($i=0;$i<$cnt;++$i)
+	// 	{
+	// 		$result=$query->row_array($i);
+	// 		$type=$result['type'];
+	// 		if (!($type&tVISIBLE)) continue;
+	// 		if ($type&1) $subQ["t".$i]=$this->briefTalk($result);
+	// 		else $ans["t".$i]=$this->briefTalk($result);
+	// 	}
+	// 	return array('ans' => $ans, 'subQ' => $subQ);
+	// }
+
+	function viewAnsOfTalk($uid,$tid) {
+		$query=$this->sqlm->_where($this->ansTableName,array('topicid'=>$tid));
 		$cnt=$query->num_rows();
-		for ($i=0;$i<$cnt;++$i)
-		{
-			$result=$query->row_array($i);
-			$type=$result['type'];
-			if (!($type&tVISIBLE)) continue;
-			if ($type&1) $subQ["t".$i]=$this->briefTalk($result);
-			else $ans["t".$i]=$this->briefTalk($result);
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$item=$it;
+			$item['author_info']=$this->userm->getDetails($it['author']);
+			$item['html']=$this->getInfoById($it['infoid']);
+			$res[]=$item;
 		}
-		return array('ans' => $ans, 'subQ' => $subQ);
+		return $res;
+	}
+
+	function viewCmtOfAns($uid,$tid) {
+		$query=$this->sqlm->_where($this->cmtTableName,array('ansid'=>$tid));
+		$cnt=$query->num_rows();
+		$res=array();
+		for ($i=0;$i<$cnt;++$i) {
+			$it=$query->row_array($i);
+			$item=$it;
+			$item['author_info']=$this->userm->getDetails($it['author']);
+			$item['txt']=$it['txt'];
+			$res[]=$item;
+		}
+		return $res;
 	}
 
 	function viewTalk($uid,$id)
 	{
 
 		$returnArray = array();
-			$query=$this->db->get_where($this->topicTableName,array('id'=>$id));
+			$query=$this->sqlm->_where($this->topicTableName,array('id'=>$id));
 			if ($query->num_rows()<=0) return null;
 			$result=$query->row_array(0);
-			$type=$result['type'];
-			if (!($type&tVISIBLE)) return null;
+			$type=$result['status'];
+			if (($type&sCLOSED)&&!$this->userm->isAdmin()) return null;
+			$returnArray['createTime'] = $result['createTime'];
+			$returnArray['actTime'] = $result['actTime'];
 			$returnArray['title'] = $result['title'];
-			$returnArray['desc'] = $result['_desc'];
-			$returnArray['owner'] = $result['owner'];
-			$returnArray['parent'] = $result['parent'];
-			$returnArray['dep'] = $result['dep'];
-			$returnArray['author'] = $this->userm->authInfo($result['owner']);
-			$returnArray['brief'] = $this->userm->briefInfo($result['owner']);
+			$returnArray['html'] = $this->getInfoById($result['infoid']);
+			$returnArray['author'] = $result['author'];
+			$returnArray['author_info'] = $this->userm->getDetails($result['author']);
 			$returnArray['s'] = $result['status'];
-			$returnArray['type'] = $type&1;
-			$sub=$this->getSub($id);
-			$returnArray['subQ'] = $sub['subQ'];
-		if ($result['dep']<=0)
-		{
-			$tmp=$this->imgm->getImgByTID($result['id']);
-			if ($tmp!=null)
-			{
-				$returnArray['ext']=$tmp['ext'];
-				$returnArray['k']=$tmp['k'];
-			}
-			else $returnArray['k']=0;
-		}
+			// $sub=$this->getSub($id);
+			// $returnArray['subQ'] = $sub['subQ'];
+
 		return $returnArray;
 	}
 		

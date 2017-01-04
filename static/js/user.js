@@ -43,7 +43,7 @@ function changeMAJ(item) {
 	}	
 	$.ajax({
 		type: 'post',
-		url: './user/ajax_editEdu',
+		url: BASE_URL+'user/ajax_editEdu',
 		data: JSON.stringify({'eid':eid,'cid':'0','mid':mid})
 		}).done(function(data){
 			data=JSON.parse(data);
@@ -67,7 +67,7 @@ function changeCOL(item) {
 	}	
 	$.ajax({
 		type: 'post',
-		url: './user/ajax_editEdu',
+		url: BASE_URL+'user/ajax_editEdu',
 		data: JSON.stringify({'eid':eid,'cid':cid,'mid':'0'})
 		}).done(function(data){
 			data=JSON.parse(data);
@@ -84,7 +84,7 @@ function rmEDU(item) {
 	var eid=item.parent().eq(0).attr('id').substr(6);
 	$.ajax({
 		type: 'post',
-		url: './user/ajax_rmEdu',
+		url: BASE_URL+'user/ajax_rmEdu',
 		data: JSON.stringify({'eid':eid})
 		}).done(function(data){
 			data=JSON.parse(data);
@@ -100,7 +100,7 @@ function rmEDU(item) {
 function addEDU() {
 	$.ajax({
 		type: 'post',
-		url: './user/ajax_addEdu'
+		url: BASE_URL+'user/ajax_addEdu'
 		}).done(function(data){
 			data=JSON.parse(data);
 			if (!data['status']) {
@@ -125,9 +125,17 @@ function addEDU() {
 		});
 }
 
-$('#submit_que').click(function() {
-	var data=$('#editor').val();
-	var title=$('#qtitle').val();
-	alert(data);
 
-});
+function alterTags(item) {
+	var tid=item.parent().eq(0).attr('id').substr(4);
+	if (in_tags[tid]==1) {
+		$('#itag'+tid).hide();
+	} else {
+		$('#itag'+tid).show();		
+	}
+	in_tags[tid]^=1;
+	$('#tags_ti').html('');
+	for (i in in_tags) {
+		if (in_tags[i]==1) $('#tags_ti').append('<span class="label label-default">'+tags[i]['title']+'</span> ');
+	}
+}

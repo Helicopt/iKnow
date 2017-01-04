@@ -463,4 +463,3 @@ CREATE TRIGGER `update_topic_trigger` BEFORE UPDATE ON `topic`
  FOR EACH ROW SET NEW.`actTime` = NOW()
 //
 DELIMITER ;
-

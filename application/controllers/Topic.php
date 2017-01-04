@@ -4,13 +4,13 @@
  *
  * @author     helicopter <fwtt20071028@126.com>
  * @version    1.0
- * @package    Idea
+ * @package    iKnow
  * @subpackage Controller
  */
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Topic extends CI_Controller {
+class Topic extends MY_Controller {
 
 	var $data = array();
 	var $auth = 0;
@@ -19,36 +19,14 @@ class Topic extends CI_Controller {
 	function __construct() {
 		parent::__construct();
 		$this->load->model('userm');
-		$this->load->model('imgm');
-		$this->load->model('avatarm');
 		$this->load->model('topicm');
 		$acc=urldecode($this->security->xss_clean(file_get_contents("php://input")));
-		$len=strlen($acc);
-		$needCheck=true;
-		if ($len>0&&$acc[$len-1]=='=')
-		{
-			$acc=substr($acc,0,strlen($acc)-1);
-			$data=json_decode($acc, TRUE);			
-			$this->AccessType=0;
-		}
-		else 
-		{
-			$data=json_decode($acc, TRUE);			
-			$data=$data[0];
-			$this->AccessType=1;
-		}
-		if ($needCheck)
-		{
-			if (isset($data['uem'])&&isset($data['upw']))
-			{
-				if ($this->AccessType==1) $this->auth=$this->userm->islogin();
-				if ($this->AccessType==0) $this->auth=$this->userm->login($data['uem'],$data['upw']);
-				//if ($this->AccessType==1) $this->auth=$this->userm->login('admin@a.bc','40bd001563085fc35165329ea1ff5c5ecbdbbeef');
-			}
-		}
-		else $this->auth=-1;
+		$data=json_decode($acc, TRUE);	
 		if ($this->auth) $this->data=$data;
-		else echo json_encode(array("status"=>0));
+		else {
+			echo json_encode(array("status"=>0));
+			exit();
+		}
 	}
 
 	public function index() {
@@ -83,48 +61,137 @@ class Topic extends CI_Controller {
 	}
 
 	public function newTopic() {
-		if (!$this->auth) return;		
-		$d=$this->data;
-		$status=-1;
+		$origin=urldecode(file_get_contents("php://input"));
+		$origin=preg_replace('/<script[\S|\s]*script[\s]*\>/', '', $origin);
+		$origin=preg_replace('/<iframe[\S|\s]*iframe[\s]*\>/', '', $origin);		
+		$d=json_decode($origin,TRUE);
+		$status=UNKNOWN_MSG;
 		$message="";
-		$tid=0;
-		if (!isset($d['title'])||!isset($d['desc'])||$d['title']==""||$d['desc']=="") 
-		{
-			$status=2;  
-			$message="标题和描述不能为空";
+		if (strpos($origin, 'script')!=FALSE||strpos($origin, 'iframe')!=FALSE) {
+			$status=FAIL_MSG;
+			$message="含有非法代码";
 		}
-		if ($status<0)
+		$tid=0;
+		if (!isset($d['title'])||!isset($d['html'])||strlen($d['title'])<3||strlen($d['html'])<10) 
 		{
-			if (!isset($d['parent'])) $tid=$this->topicm->addTalk($this->auth,$d);
-			else $tid=$this->topicm->addTalk($this->auth,$d,$d['parent']);
-			if (!isset($d['parent'])&&isset($d['pic'])&&$tid>0) {
-				$ImgId=$this->imgm->addImg($tid,$d['pic']);
-			} else $ImgId="0";
-			$status=($tid>0&&$ImgId!="-")?1:2;
-			if ($status==1) $message="提交成功";
+			$status=FAIL_MSG;  
+			$message="标题和描述过短";
+		}
+		if (isset($d['title'])&&strlen($d['title'])>64) 
+		{
+			$status=FAIL_MSG;  
+			$message="标题过长";
+		}
+		if ($status==UNKNOWN_MSG)
+		{
+			$tid=$this->topicm->addQ($this->auth,$d);
+			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==SUCCESS_MSG) $message="提交成功";
 			else $message="提交失败";
 		}
-		echo json_encode(array("status"=>$status,"message"=>$message,"tid"=>$tid,"ImgId"=>$ImgId));		
+		echo json_encode(array("status"=>$status,"message"=>$message,"tid"=>$tid));		
+	}
+
+	public function ansTopic() {
+		$origin=urldecode(file_get_contents("php://input"));
+		$origin=preg_replace('/<script[\S|\s]*script[\s]*\>/', '', $origin);
+		$origin=preg_replace('/<iframe[\S|\s]*iframe[\s]*\>/', '', $origin);		
+		$d=json_decode($origin,TRUE);
+		$status=UNKNOWN_MSG;
+		$message="";
+		if (strpos($origin, 'script')!=FALSE||strpos($origin, 'iframe')!=FALSE) {
+			$status=FAIL_MSG;
+			$message="含有非法代码";
+		}
+		$tid=0;
+		if (!isset($d['html'])||!isset($d['tid'])||strlen($d['html'])<10||!is_numeric($d['tid'])) 
+		{
+			$status=FAIL_MSG;  
+			$message="数据有误";
+		}
+		if ($status==UNKNOWN_MSG)
+		{
+			$tid=$this->topicm->addA($this->auth,$d);
+			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==SUCCESS_MSG) $message="提交成功";
+			else $message="提交失败";
+		}
+		echo json_encode(array("status"=>$status,"message"=>$message,"aid"=>$tid));		
+	}
+
+	public function addComment() {
+		$d=$this->data;
+		$status=UNKNOWN_MSG;
+		$message="";
+		$tid=0;
+		if (!isset($d['val'])||!isset($d['aid'])||strlen($d['val'])<1||!is_numeric($d['aid'])) 
+		{
+			$status=FAIL_MSG;  
+			$message="数据有误";
+		}
+		if ($status==UNKNOWN_MSG)
+		{
+			$tid=$this->topicm->addC($this->auth,$d);
+			$status=($tid>0)?SUCCESS_MSG:FAIL_MSG;
+			if ($status==SUCCESS_MSG) $message="提交成功";
+			else $message="提交失败";
+		}
+		echo json_encode(array("status"=>$status,"message"=>$message,"cmid"=>$tid));
+	}
+
+	public function t($tid=0){
+		if (is_numeric($tid)&&$this->topicm->topic_exists($tid))
+		$this->load->view('topic/viewTopic',array(
+			'cata'=>'topic',
+			'uid'=>$this->auth,
+			'info'=>$this->userm->getDetails($this->auth),
+			'tid'=>$tid
+			));
+		else $this->load->view('errors/html/error_404',array('heading'=>'Not Found!','message'=>''));
 	}
 
 	public function viewTopic() {
-		if (!$this->auth) return;		
-		$d=$this->data;
-		$status=-1;
-		if (!isset($d['tid'])) 
+		if (!isset($_GET['tid'])) 
 		{
-			$status=2;  
-		}
-		if ($status<0)
-		{
-			$info=$this->topicm->viewTalk($this->auth,$d['tid']);
-			$status=($info!=null)?1:2;
-		}
-		$todo=array("status"=>$status,"author"=>$info['author'],"title"=>$info['title'],"brief"=>$info['brief'],"desc"=>$info['desc'],"subQ"=>$info['subQ'],'type'=>$info['type'],'owner'=>$info['owner'],'s'=>$info['s'],'parent'=>$info['parent'],'dep'=>$info['dep']);
-		if (isset($info['k'])) $todo['k']=$info['k'];
-		if (isset($info['ext'])) $todo['ext']=$info['ext'];
-		echo json_encode($todo);		
+			$this->load->view('errors/html/error_404',array('heading'=>'Not Found!','message'=>''));
+			return;
+		}else $tid=$_GET['tid'];
+		$info=$this->topicm->viewTalk($this->auth,$tid);
+		$status=($info!='')?SUCCESS_MSG:FAIL_MSG;
+		$todo=array("status"=>$status,'info'=>$info);
+		echo json_encode($todo);
+	}
 
+	public function viewTopicAns() {
+		$message="";
+		if (!isset($_GET['tid'])) 
+		{
+			$this->load->view('errors/html/error_404',array('heading'=>'Not Found!','message'=>''));
+			return;
+		}else $tid=$_GET['tid'];
+		$info=$this->topicm->viewAnsOfTalk($this->auth,$tid);
+		$status=($info!='')?SUCCESS_MSG:FAIL_MSG;
+		if ($status==FAIL_MSG) $message="fail";
+		$todo=array("status"=>$status,'info'=>$info,'cnt'=>count($info),"message"=>$message);
+		echo json_encode($todo);
+	}
+
+	public function viewComments() {
+		$message="";
+		if (!isset($_GET['aid'])) 
+		{
+			$this->load->view('errors/html/error_404',array('heading'=>'Not Found!','message'=>''));
+			return;
+		}else $tid=$_GET['aid'];
+		$info=$this->topicm->viewCmtOfAns($this->auth,$tid);
+		$status=($info!='')?SUCCESS_MSG:FAIL_MSG;
+		if ($status==FAIL_MSG) $message="fail";
+		$todo=array("status"=>$status,'info'=>$info,'cnt'=>count($info),"message"=>$message);
+		echo json_encode($todo);
+	}
+
+	public function getTags() {
+		echo json_encode($this->topicm->getTags());
 	}
 
 	public function wrapTopic() {

@@ -74,7 +74,7 @@
 	$(function() {
 		$.ajax({
 			type: 'post',
-			url: './user/ajax_getEduById',
+			url: BASE_URL+'user/ajax_getEduById',
 			data: JSON.stringify({'uid':'<?php echo $uid;?>'})
 		}).done(function(data){
 			data=JSON.parse(data);
@@ -83,7 +83,7 @@
 				var d=genEdu(it['id'],it['col'],it['maj']);
 				$('#eduDIV').append(d);
 			}
-			$('.input-group-btn').hide();
+			$('#eduDIV .input-group-btn').hide();
 			$('.btn_rm').hide();
 		}).fail(function(){
 			alert("出现错误，请稍后再试");
@@ -95,13 +95,13 @@
 				$('#e_nick').hide();
 				$('#sig').show();
 				$('#e_sig').hide();
-				$('.input-group-btn').hide();
+				$('#eduDIV .input-group-btn').hide();
 				$('.btn_rm').hide();
 				$('.jlab').show();
 				var rdata={'nick':$('#e_nick').val(),'sig':$('#e_sig').val()};
 						$.ajax({
 							type: 'post',
-							url: './user/ajax_setProfile',
+							url: BASE_URL+'user/ajax_setProfile',
 							data: JSON.stringify(rdata)
 							}).done(function(data){
 								data=JSON.parse(data);
@@ -118,7 +118,7 @@
 			}else {
 				$.ajax({
 					type: 'post',
-					url: './user/ajax_getColleges',
+					url: BASE_URL+'user/ajax_getColleges',
 				}).done(function(data){
 					data=JSON.parse(data);
 					cols=data;
@@ -132,7 +132,7 @@
 				});
 				$.ajax({
 					type: 'post',
-					url: './user/ajax_getMajors',
+					url: BASE_URL+'user/ajax_getMajors',
 				}).done(function(data){
 					data=JSON.parse(data);
 					majs=data;
@@ -146,7 +146,7 @@
 					alert("出现错误，请稍后再试");
 				});
 
-				$('.input-group-btn').show();
+				$('#eduDIV .input-group-btn').show();
 				$('.jlab').hide();
 				$('#nick').hide();
 				$('#sig').hide();

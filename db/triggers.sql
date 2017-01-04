@@ -34,3 +34,19 @@ CREATE TRIGGER `delete_groups_trigger` AFTER DELETE ON `belong`
 //
 DELIMITER ;
 
+
+
+DROP TRIGGER IF EXISTS `insert_answer_trigger`;
+DELIMITER //
+CREATE TRIGGER `insert_answer_trigger` BEFORE INSERT ON `answer`
+ FOR EACH ROW SET NEW.`actTime` = NOW()
+//
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `insert_topic_trigger`;
+DELIMITER //
+CREATE TRIGGER `insert_topic_trigger` BEFORE INSERT ON `topic`
+ FOR EACH ROW SET NEW.`actTime` = NOW()
+//
+DELIMITER ;
+
