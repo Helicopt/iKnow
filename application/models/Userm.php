@@ -48,7 +48,7 @@ class UserM extends CI_Model {
 			$rpwd=$result['pwd'];
 			if ($rpwd==$pwd) {
 				$_SESSION['id']=$result['id'];
-				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],'status'=>$result['status'],'ava'=>base_url()."avatar/t/".$id);
+				$_SESSION['uinfo']=array('id'=>$result['id'],'nick'=>$result['nick'],'email'=>$result['email'],'status'=>$result['status'],'ava'=>base_url()."avatar/t/".$result['id']);
 				return $result['id'];
 			}
 			else return 0;
