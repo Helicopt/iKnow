@@ -39,7 +39,7 @@ unset($enum_array);
 				($this->uri->segment(1) != 'explore') &&
 				($this->uri->segment(1) != 'register') &&
 				(current_url() != base_url().index_page()) &&
-				($this->uri->segment(1) != 'help') &&
+				($this->uri->segment(1) != 'avatar') &&
 				($this->uri->segment(1) != 'error')
 				){
 			redirect(base_url());

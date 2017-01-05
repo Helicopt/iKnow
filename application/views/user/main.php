@@ -102,8 +102,8 @@
 		}).done(function(data){
 			data=JSON.parse(data);
 			var cnt=data.length;
-			if (cnt>8) {
-				$('#reply').css('height',(45*cnt).toString()+'px');
+			if (cnt>6) {
+				$('#reply').css('height',(72*cnt).toString()+'px');
 			}
 			for (var i=0;i<cnt;++i) {
 				$('#ans_show').append(genStrip('回答',data[i]));
@@ -154,8 +154,8 @@
 		}).done(function(data){
 			data=JSON.parse(data);
 			var cnt=data.length;
-			if (cnt>8) {
-				$('#ask').css('height',(45*cnt).toString()+'px');
+			if (cnt>6) {
+				$('#ask').css('height',(72*cnt).toString()+'px');
 			}
 			for (var i=0;i<cnt;++i) {
 				$('#que_show').append(genStrip('提出',data[i]));

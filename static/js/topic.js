@@ -101,15 +101,23 @@ function addComment(aid) {
 }
 
 function genStrip(verb,item) {
-	return '<div class="row" style="margin:15px 15px 15px 15px;">在 '+item['time']+' '+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div>';
+//	return '<div class="row" >在 '+item['time']+' '+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div>';
+	return '<div class="row" style="margin:15px 15px 15px 15px;font-size:17px;"><div class="row">'+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div><div class="row" style="color:#888888;font-size:13px;">'+item['time']+'</div></div>';
 }
 
-function genStrip2(verb,item) {
-	return '<div class="row" style="margin:15px 15px 15px 15px;">在 '+item['actTime']+' '+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div>';
+function genStrip2(au,verb,item) {
+	return '<div class="row" style="margin:15px 15px 15px 15px;font-size:17px;">\
+	<div class="col-md-1" style="margin-right:15px;">'+genPeo2(au)+'</div>\
+	<div class="col-md-10"><div class="row">'+verb+'了问题 <a href="'+BASE_URL+'topic/t/'+item['id']+'">'+item['title']+'</a></div><div class="row" style="color:#888888;font-size:13px;">'+item['actTime']+'</div></div>\
+	</div>';
 }
 
 function genLabel(func,item) {
 	return '<div class="label label-default" id="ssstag_'+item['id']+'" style="cursor:pointer;display:block;float:left;margin:10px 5px 10px 5px;" onclick="'+func+'('+item['id']+');">'+item['title']+'</div>';
+}
+
+function genLabelBig(func,item) {
+	return '<div class="label label-default" id="ssstag_'+item['id']+'" style="font-size:18px;cursor:pointer;display:block;float:left;margin:10px 5px 10px 15px;" onclick="'+func+'('+item['id']+');">'+item['title']+'</div>';
 }
 
 function focusTag(tgid) {

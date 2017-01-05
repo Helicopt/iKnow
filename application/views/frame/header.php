@@ -39,7 +39,7 @@
 					<ul class="nav navbar-nav navbar-right">
 						<?php if ($uid) echo '<li style="margin-top:8px;margin-left:10px;"><button class="btn btn-success" data-toggle="modal" data-target="#ques"><i class="glyphicon glyphicon-edit"></i> 提问</button></li>'; ?>
 						<li><a href="<?php echo $uid?base_url().'user':base_url(); ?>"><i class="glyphicon glyphicon-user"></i> <?php echo $uid?$info['nick']:"登录"; ?></a></li>
-						<?php if (!$uid) echo '<li><a href='.base_url().'"?action=register"> 注册</a></li>';
+						<?php if (!$uid) echo '<li><a href="'.base_url().'?action=register"> 注册</a></li>';
 								else  echo '<li><a href="'.base_url().'register/logout"> 退出</a></li>'; ?> 
 					</ul>
 				</div>
@@ -90,6 +90,7 @@
 			var tags={};
 			var in_tags={};
 			var ed_tp='new';
+			var is_login=<?php echo (isset($uid)&&$uid>0)?1:0; ?>;
 			$(function() {
 
 			$('#submit_que').click(function() {
@@ -122,6 +123,7 @@
     				closable: true,
 				    btns: ['bold', 'italic', '|', 'insertImage']
 				});
+				if (is_login)
 				$.ajax({
 					type: 'post',
 					url: BASE_URL+'Topic/getTags',

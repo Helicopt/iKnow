@@ -176,6 +176,13 @@ function genPeo(item) {
 	</div>';
 }
 
+function genPeo2(item) {
+	return '<div style="float:left;margin-right:10px;height:60px;width:42px;text-align:center;">\
+		<a href="'+BASE_URL+'user/look/'+item['id']+'" style="font-size:12px;"><img style="height:40px;width:40px;" src="'+item['ava']+'"/>\
+		'+''+'</a>\
+	</div>';
+}
+
 function alterF(uid) {
 	if (following=='yes') {
 		$.ajax({

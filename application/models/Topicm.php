@@ -600,7 +600,7 @@ class TopicM extends CI_Model {
 				$res2[]=array('id'=>$it['id'],'title'=>$it['title'],'actTime'=>$it['actTime'],'createTime'=>$it['createTime'],
 					'author'=>$it['author'],'author_info'=>$this->userm->getDetails($it['author']));
 			}
-			$res[]=array('title'=>$it1['title'],'info'=>$res2);
+			$res[]=array('tag'=>$it1,'info'=>$res2);
 		}
 		return $res;
 	}

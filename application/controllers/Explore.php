@@ -28,4 +28,11 @@ class Explore extends MY_Controller {
 				)
 			);
 	}
+
+	public function sort_topic() {		
+		$this->load->model('topicm');
+		echo json_encode(array(
+			'info'=>$this->topicm->sort_rec($this->auth)
+			));
+	}
 }
