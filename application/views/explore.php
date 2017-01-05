@@ -22,8 +22,6 @@ $(function(){
 				var item=fav_r[k];
 				console.log(item);
 				$('#fav_list').append(item['author_info']['nick']+genStrip2('提出',item));
-				++$cnt;
-				if ($cnt>5) break;
 			}
 		}).fail(function(){
 			alert("出现错误，请稍后再试");
