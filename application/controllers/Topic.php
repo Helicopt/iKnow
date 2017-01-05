@@ -259,6 +259,10 @@ class Topic extends MY_Controller {
 			$status=FAIL_MSG;  
 			$message="数据有误";
 		}
+		if ($status==UNKNOWN_MSG&&$this->topicm->closed($d['tid'])) {
+			$status=FAIL_MSG;  
+			$message="话题封禁";			
+		}
 		if ($status==UNKNOWN_MSG)
 		{
 			$tid=$this->topicm->addA($this->auth,$d);
@@ -309,6 +313,7 @@ class Topic extends MY_Controller {
 		$info=$this->topicm->viewTalk($this->auth,$tid);
 		$status=($info!='')?SUCCESS_MSG:FAIL_MSG;
 		$todo=array("status"=>$status,'info'=>$info);
+		if ($status==FAIL_MSG) $todo['message']="话题封禁";
 		echo json_encode($todo);
 	}
 
@@ -320,7 +325,7 @@ class Topic extends MY_Controller {
 			return;
 		}else $tid=$_GET['tid'];
 		$info=$this->topicm->viewAnsOfTalk($this->auth,$tid);
-		$status=($info!='')?SUCCESS_MSG:FAIL_MSG;
+		$status=(!$this->topicm->closed($tid)&&$info!='')?SUCCESS_MSG:FAIL_MSG;
 		if ($status==FAIL_MSG) $message="fail";
 		$todo=array("status"=>$status,'info'=>$info,'cnt'=>count($info),"message"=>$message);
 		echo json_encode($todo);

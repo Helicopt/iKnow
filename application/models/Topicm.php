@@ -377,15 +377,26 @@ class TopicM extends CI_Model {
 		}
 	}
 
+	function closed($tid) {
+		$query=$this->db->query("SELECT * from ".$this->topicTableName." WHERE id='$tid' and is_closed(status)");						
+		if ($query->num_rows()>0) return true;
+		else return false;
+	}
+
 	function viewTalk($uid,$id)
 	{
 
 		$returnArray = array();
-			$query=$this->sqlm->_where($this->topicTableName,array('id'=>$id));
-			if ($query->num_rows()<=0) return null;
+			//$query=$this->sqlm->_where($this->topicTableName,array('id'=>$id));
+			//$type=$result['status'];
+			//if (($type&sCLOSED)&&!$this->userm->belongTo($uid,'admin')) return null;
+			if ($this->userm->belongTo($uid,'admin')) {
+				$query=$this->sqlm->_where($this->topicTableName,array('id'=>$id));
+			} else {
+				$query=$this->db->query("SELECT * from ".$this->topicTableName." WHERE id='$id' and NOT is_closed(status)");				
+			}
+			if ($query->num_rows()<=0) return '';
 			$result=$query->row_array(0);
-			$type=$result['status'];
-			if (($type&sCLOSED)&&!$this->userm->belongTo($uid,'admin')) return null;
 			$returnArray['createTime'] = $result['createTime'];
 			$returnArray['actTime'] = $result['actTime'];
 			$returnArray['title'] = $result['title'];
